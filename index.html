@@ -14,5 +14,38 @@
     <button onclick="addPoints()">Complete Task (+100 Points)</button>
   </div>
   <script src="script.js"></script> <!-- Link to JavaScript file -->
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.x/firebase-app.js";
+  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.x/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+  authDomain: "telesalesgame-a09f2.firebaseapp.com",
+  databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "telesalesgame-a09f2",
+  storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+  messagingSenderId: "1097332097301",
+  appId: "1:1097332097301:web:51b0151499e33f7851291c",
+  measurementId: "G-7LNG5176PW"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+  // Track and display points in real time
+  const pointsRef = ref(db, 'game/points');
+  onValue(pointsRef, (snapshot) => {
+    const points = snapshot.val();
+    document.getElementById("points").innerText = points || 0;
+  });
+
+  // Function to add points to Firebase
+  function addPoints() {
+    set(pointsRef, (points || 0) + 100);
+    alert("You earned 100 points!");
+  }
+</script>
+
 </body>
 </html>
