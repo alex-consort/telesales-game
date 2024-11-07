@@ -33,11 +33,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-    function updateObjective() {
-      const newObjective = document.getElementById("sales-objective").value;
-      set(ref(db, 'missions/salesObjective'), { value: newObjective });
-      alert("Objective updated to " + newObjective + " sales!");
-    }
+function updateObjective() {
+  const newObjective = document.getElementById("sales-objective").value;
+  set(ref(db, 'missions/salesObjective'), { value: newObjective });
+  alert("Objective updated to " + newObjective + " sales!");
+}
   </script>
 </body>
 </html>
