@@ -18,18 +18,20 @@
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.x/firebase-database.js";
 
     // Firebase configuration (replace with your own Firebase config details)
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID",
-      databaseURL: "YOUR_DATABASE_URL"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+  authDomain: "telesalesgame-a09f2.firebaseapp.com",
+  databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "telesalesgame-a09f2",
+  storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+  messagingSenderId: "1097332097301",
+  appId: "1:1097332097301:web:51b0151499e33f7851291c",
+  measurementId: "G-7LNG5176PW"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
     function updateObjective() {
       const newObjective = document.getElementById("sales-objective").value;
