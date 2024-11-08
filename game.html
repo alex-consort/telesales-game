@@ -15,7 +15,7 @@
       margin: 0;
       padding: 0;
     }
-    /* Title Bar Styles */
+    /* Navbar */
     .navbar {
       background-color: #617B8F;
       padding: 10px;
@@ -36,6 +36,7 @@
     .navbar a:hover {
       background-color: #FF4E59;
     }
+    /* Header */
     .header {
       display: flex;
       justify-content: center;
@@ -52,7 +53,7 @@
       font-size: 1.8em;
       font-weight: bold;
     }
-    /* Game Section */
+    /* Game Container */
     .game-container {
       max-width: 800px;
       margin: 20px auto;
@@ -66,8 +67,8 @@
       color: #617B8F;
       margin: 20px 0;
     }
-    /* Product Cards */
-    .product-card {
+    /* Item Cards */
+    .item-card {
       background-color: #f9f9f9;
       border: 1px solid #ddd;
       border-radius: 8px;
@@ -78,18 +79,18 @@
       align-items: center;
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
     }
-    .product-name {
+    .item-name {
       font-size: 1.2em;
       font-weight: bold;
       color: #274358;
       margin-bottom: 10px;
     }
-    .product-points {
+    .item-points {
       font-size: 1em;
       color: #617B8F;
       margin-bottom: 15px;
     }
-    .product-button {
+    .item-button {
       padding: 10px;
       color: #fff;
       background-color: #274358;
@@ -99,7 +100,7 @@
       font-weight: bold;
       transition: background 0.3s;
     }
-    .product-button:hover {
+    .item-button:hover {
       background-color: #FF4E59;
     }
   </style>
@@ -121,12 +122,25 @@
   </header>
 
   <div class="game-container">
-    <h2>Earn Points by Selecting Products!</h2>
+    <h2>Earn Points by Selecting Items!</h2>
     <p class="points-display">Current Points: <span id="points">0</span></p>
     
+    <!-- Available Products Section -->
     <h3>Available Products</h3>
     <div class="product-list" id="productList">
       <!-- Product cards will be populated here -->
+    </div>
+
+    <!-- Available Short-Dated Products Section -->
+    <h3>Available Short-Dated Products</h3>
+    <div class="short-dated-list" id="shortDatedList">
+      <!-- Short-dated product cards will be populated here -->
+    </div>
+
+    <!-- Available Objectives Section -->
+    <h3>Available Objectives</h3>
+    <div class="objective-list" id="objectiveList">
+      <!-- Objective cards will be populated here -->
     </div>
   </div>
 
@@ -164,8 +178,10 @@
           document.getElementById("points").innerText = currentPoints;
         });
 
-        // Fetch products available in the game
+        // Fetch all items available in the game
         fetchProducts();
+        fetchShortDatedProducts();
+        fetchObjectives();
       } else {
         window.location.href = "login.html";
       }
@@ -182,31 +198,75 @@
         for (const key in products) {
           const product = products[key];
           const productCard = document.createElement("div");
-          productCard.className = "product-card";
+          productCard.className = "item-card";
           productCard.innerHTML = `
-            <div class="product-name">${product.name}</div>
-            <div class="product-points">${product.points} Points</div>
-            <button class="product-button" onclick="earnPointsFromProduct(${product.points})">Earn Points</button>
+            <div class="item-name">${product.name}</div>
+            <div class="item-points">${product.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
           `;
           productList.appendChild(productCard);
         }
       });
     }
 
-    // Function to earn points from a product
-    function earnPointsFromProduct(points) {
+    // Function to fetch short-dated products
+    function fetchShortDatedProducts() {
+      const shortDatedRef = db.ref("shortDatedProducts");
+      shortDatedRef.on("value", (snapshot) => {
+        const shortDatedProducts = snapshot.val();
+        const shortDatedList = document.getElementById("shortDatedList");
+        shortDatedList.innerHTML = ""; // Clear previous short-dated products
+
+        for (const key in shortDatedProducts) {
+          const product = shortDatedProducts[key];
+          const shortDatedCard = document.createElement("div");
+          shortDatedCard.className = "item-card";
+          shortDatedCard.innerHTML = `
+            <div class="item-name">${product.description}</div>
+            <div class="item-points">${product.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
+          `;
+          shortDatedList.appendChild(shortDatedCard);
+        }
+      });
+    }
+
+    // Function to fetch objectives
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectives = snapshot.val();
+        const objectiveList = document.getElementById("objectiveList");
+        objectiveList.innerHTML = ""; // Clear previous objectives
+
+        for (const key in objectives) {
+          const objective = objectives[key];
+          const objectiveCard = document.createElement("div");
+          objectiveCard.className = "item-card";
+          objectiveCard.innerHTML = `
+            <div class="item-name">${objective.name}</div>
+            <div class="item-points">${objective.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${objective.points})">Earn Points</button>
+          `;
+          objectiveList.appendChild(objectiveCard);
+        }
+      });
+    }
+
+    // Function to earn points from an item
+    function earnPoints(points) {
       const user = auth.currentUser;
 
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
         userPointsRef.once("value").then((snapshot) => {
           const currentUserPoints = snapshot.val() || 0;
-          const newTotalPoints = currentUserPoints + points; // Only add product points
+          const newTotalPoints = currentUserPoints + points;
 
-          userPointsRef.set(newTotalPoints) // Update total points
+          userPointsRef.set(newTotalPoints)
             .then(() => {
-              alert(`You earned ${points} points from the product!`);
-              document.getElementById("points").innerText = newTotalPoints; // Update displayed points
+              alert(`You earned ${points} points!`);
+              document.getElementById("points").innerText = newTotalPoints;
             })
             .catch(error => console.error("Error updating points:", error));
         });
