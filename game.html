@@ -230,7 +230,16 @@
     function earnPointsFromProduct(points) {
       currentPoints += points;
       document.getElementById("points").innerText = currentPoints;
-      earnPoints(); // Call earnPoints to update in database
+      const user = auth.currentUser;
+
+      if (user) {
+        const userPointsRef = db.ref("users/" + user.uid + "/points");
+        userPointsRef.set(currentPoints) // Update total points
+          .then(() => {
+            alert(`You earned ${points} points from the product!`);
+          })
+          .catch(error => console.error("Error updating points:", error));
+      }
     }
   </script>
 </body>
