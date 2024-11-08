@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Telesales Game</title>
+  <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Calibri', sans-serif;
+      background-color: #f4f6f9;
+      color: #274358;
+      text-align: center;
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: #617B8F;
+    }
+    .logo {
+      height: 50px;
+      margin-right: 20px;
+    }
+    .game-title {
+      color: #FFFFFF;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+    /* Authentication Card */
+    .auth-card {
+      background-color: #ffffff;
+      border: 1px solid #617B8F;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 300px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      padding: 10px 20px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #FF4E59;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    h2 {
+      color: #617B8F;
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
+    <h1 class="game-title">Telesales Game Login</h1>
+  </header>
+
+  <div class="container">
+    <div class="auth-card">
+      <h2>Sign Up</h2>
+      <input type="email" id="signupEmail" placeholder="Email">
+      <input type="password" id="signupPassword" placeholder="Password">
+      <button onclick="signUp()">Sign Up</button>
+    </div>
+
+    <div class="auth-card">
+      <h2>Log In</h2>
+      <input type="email" id="loginEmail" placeholder="Email">
+      <input type="password" id="loginPassword" placeholder="Password">
+      <button onclick="logIn()">Log In</button>
+    </div>
+
+    <div class="auth-card">
+      <h2>Logout</h2>
+      <button onclick="logOut()">Log Out</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    function signUp() {
+      const email = document.getElementById("signupEmail").value;
+      const password = document.getElementById("signupPassword").value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          alert("Signed up successfully!");
+          const user = userCredential.user;
+          db.ref("users/" + user.uid).set({ points: 0, level: 1, badges: {} });
+        })
+        .catch(error => alert("Error: " + error.message));
+    }
+
+    function logIn() {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          alert("Logged in successfully!");
+          window.location.href = "profile.html";
+        })
+        .catch(error => alert("Error: " + error.message));
+    }
+
+    function logOut() {
+      auth.signOut()
+        .then(() => alert("Logged out successfully!"))
+        .catch(error => alert("Error: " + error.message));
+    }
+  </script>
+</body>
+</html>
