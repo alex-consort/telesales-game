@@ -88,6 +88,10 @@
       width: 60px; /* Fixed width for the points adjustment */
       text-align: center; /* Center align the text in input */
     }
+    .remove-button {
+      background-color: #FF4E59;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -171,6 +175,7 @@
               <input type="text" id="pointsInput_${playerId}" value="${playerData.points}" readonly>
               <button onclick="adjustPoints('${playerId}', 10)">+</button>
             </div>
+            <button class="remove-button" onclick="removePlayer('${playerId}')">Remove Player</button>
             <button onclick="updatePoints('${playerId}')">Update Points</button>
           `;
           playersList.appendChild(playerItem);
@@ -201,6 +206,20 @@
         });
     }
 
+    // Remove a player
+    function removePlayer(playerId) {
+      const playersRef = db.ref("users/" + playerId);
+      playersRef.remove()
+        .then(() => {
+          alert("Player removed successfully!");
+          fetchPlayers(); // Refresh player list
+        })
+        .catch((error) => {
+          console.error("Error removing player:", error);
+          alert("Error removing player. Please try again.");
+        });
+    }
+
     // Add new product
     function addProduct() {
       const productName = document.getElementById("productName").value;
@@ -216,7 +235,7 @@
           alert("Product added successfully!");
           document.getElementById("productName").value = ""; // Clear input
           document.getElementById("productPoints").value = ""; // Clear input
-          fetchProducts(); // Refresh products list
+          fetchProducts(); // Refresh product list
         })
         .catch((error) => {
           console.error("Error adding product:", error);
@@ -236,11 +255,29 @@
 
         snapshot.forEach((childSnapshot) => {
           const product = childSnapshot.val();
+          const productId = childSnapshot.key;
           const productItem = document.createElement("div");
-          productItem.innerHTML = `<strong>${product.name}</strong> - ${product.points} Points`;
+          productItem.innerHTML = `
+            <strong>${product.name}</strong> - ${product.points} Points
+            <button onclick="removeProduct('${productId}')">Remove Product</button>
+          `;
           productList.appendChild(productItem);
         });
       });
+    }
+
+    // Remove a product
+    function removeProduct(productId) {
+      const productsRef = db.ref("products/" + productId);
+      productsRef.remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts(); // Refresh product list
+        })
+        .catch((error) => {
+          console.error("Error removing product:", error);
+          alert("Error removing product. Please try again.");
+        });
     }
 
     // Add new objective
@@ -278,12 +315,29 @@
 
         snapshot.forEach((childSnapshot) => {
           const objective = childSnapshot.val();
+          const objectiveId = childSnapshot.key;
           const objectiveItem = document.createElement("div");
-          objectiveItem.className = "objective-item";
-          objectiveItem.innerHTML = `<strong>${objective.name}</strong> - <span>${objective.points} Points</span>`;
+          objectiveItem.innerHTML = `
+            <strong>${objective.name}</strong> - ${objective.points} Points
+            <button onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+          `;
           objectivesList.appendChild(objectiveItem);
         });
       });
+    }
+
+    // Remove an objective
+    function removeObjective(objectiveId) {
+      const objectivesRef = db.ref("objectives/" + objectiveId);
+      objectivesRef.remove()
+        .then(() => {
+          alert("Objective removed successfully!");
+          fetchObjectives(); // Refresh objectives list
+        })
+        .catch((error) => {
+          console.error("Error removing objective:", error);
+          alert("Error removing objective. Please try again.");
+        });
     }
 
     // Call fetch functions to display initial data
