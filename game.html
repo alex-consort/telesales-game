@@ -54,7 +54,7 @@
     }
     /* Game Section */
     .game-container {
-      max-width: 400px;
+      max-width: 800px;
       margin: 20px auto;
       padding: 20px;
       background-color: #ffffff;
@@ -78,6 +78,42 @@
       transition: background 0.3s;
     }
     .task-button:hover {
+      background-color: #FF4E59;
+    }
+    /* Product Cards */
+    .product-card {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .product-name {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #274358;
+      margin-bottom: 10px;
+    }
+    .product-points {
+      font-size: 1em;
+      color: #617B8F;
+      margin-bottom: 15px;
+    }
+    .product-button {
+      padding: 10px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .product-button:hover {
       background-color: #FF4E59;
     }
     /* Leaderboard Section */
@@ -118,7 +154,7 @@
 
     <h3>Available Products</h3>
     <div class="product-list" id="productList">
-      <!-- Product items will be populated here -->
+      <!-- Product cards will be populated here -->
     </div>
   </div>
 
@@ -200,57 +236,46 @@
 
         for (const key in products) {
           const product = products[key];
-          const productItem = document.createElement("div");
-          productItem.className = "product-item";
-          productItem.innerText = `${product.name}: ${product.points} Points`;
-          productItem.onclick = () => earnPointsFromProduct(product.points);
-          productList.appendChild(productItem);
+          const productCard = document.createElement("div");
+          productCard.className = "product-card";
+          productCard.innerHTML = `
+            <div class="product-name">${product.name}</div>
+            <div class="product-points">${product.points} Points</div>
+            <button class="product-button" onclick="earnPointsFromProduct(${product.points})">Earn Points</button>
+          `;
+          productList.appendChild(productCard);
         }
       });
     }
 
     // Function to earn points from product
     function earnPointsFromProduct(points) {
-      const newPoints = currentPoints + points;
-      const user = auth.currentUser;
-
-      if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        userPointsRef.set(newPoints)
-          .then(() => {
-            alert(`You earned ${points} points from the product!`);
-            updateLeaderboard(); // Update leaderboard after earning points
-          })
-          .catch(error => console.error("Error updating points:", error));
-      } else {
-        alert("You need to be logged in to earn points.");
-      }
+      currentPoints += points;
+      document.getElementById("points").innerText = currentPoints;
+      earnPoints(); // Call earnPoints to update in database
     }
 
-    // Function to update leaderboard
+    // Function to update the leaderboard
     function updateLeaderboard() {
       const leaderboardRef = db.ref("users");
-      leaderboardRef.orderByChild("points").once("value", (snapshot) => {
+      leaderboardRef.on("value", (snapshot) => {
         const leaderboard = [];
         snapshot.forEach((childSnapshot) => {
           const childData = childSnapshot.val();
-          leaderboard.push({
-            id: childSnapshot.key,
-            name: childData.firstName || "Anonymous",
-            points: childData.points || 0
-          });
+          if (childData.points !== undefined) {
+            leaderboard.push({ name: childData.firstName || childSnapshot.key, points: childData.points });
+          }
         });
-
-        // Sort leaderboard by points descending
+        
+        // Sort leaderboard by points in descending order
         leaderboard.sort((a, b) => b.points - a.points);
+
         const leaderboardList = document.getElementById("leaderboard");
         leaderboardList.innerHTML = ""; // Clear previous leaderboard
-
-        // Populate leaderboard
-        leaderboard.forEach((user) => {
-          const listItem = document.createElement("li");
-          listItem.innerText = `${user.name}: ${user.points} Points`;
-          leaderboardList.appendChild(listItem);
+        leaderboard.forEach(user => {
+          const leaderboardItem = document.createElement("li");
+          leaderboardItem.innerText = `${user.name}: ${user.points} Points`;
+          leaderboardList.appendChild(leaderboardItem);
         });
       });
     }
