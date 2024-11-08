@@ -44,15 +44,17 @@
     }
     .dashboard {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       padding: 20px;
+      flex-wrap: wrap; /* Allows wrapping for smaller screens */
     }
     .card {
       background-color: #ffffff;
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 48%;
+      width: 45%; /* Adjust width for cards */
+      margin-bottom: 20px; /* Add space below each card */
     }
     button {
       padding: 10px 20px;
@@ -74,6 +76,17 @@
       border: 1px solid #97CFF3;
       border-radius: 5px;
       box-sizing: border-box;
+    }
+    .adjust-points {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .adjust-points input {
+      width: 60px; /* Fixed width for the points adjustment */
+      text-align: center; /* Center align the text in input */
     }
   </style>
 </head>
@@ -153,6 +166,11 @@
           const playerItem = document.createElement("div");
           playerItem.innerHTML = `
             <strong>${playerData.firstName} ${playerData.lastName}</strong> - Points: <span id="points_${playerId}">${playerData.points}</span>
+            <div class="adjust-points">
+              <button onclick="adjustPoints('${playerId}', -10)">-</button>
+              <input type="text" id="pointsInput_${playerId}" value="${playerData.points}" readonly>
+              <button onclick="adjustPoints('${playerId}', 10)">+</button>
+            </div>
             <button onclick="updatePoints('${playerId}')">Update Points</button>
           `;
           playersList.appendChild(playerItem);
@@ -160,21 +178,27 @@
       });
     }
 
+    // Function to adjust points for a player
+    function adjustPoints(playerId, change) {
+      const pointsInput = document.getElementById(`pointsInput_${playerId}`);
+      let currentPoints = parseInt(pointsInput.value, 10) || 0;
+      pointsInput.value = currentPoints + change;
+    }
+
     // Function to update points for a player
     function updatePoints(playerId) {
-      const newPoints = prompt("Enter new points value:");
-      if (newPoints !== null) {
-        const playersRef = db.ref("users/" + playerId);
-        playersRef.update({ points: parseInt(newPoints, 10) })
-          .then(() => {
-            alert("Points updated successfully!");
-            fetchPlayers(); // Refresh player list
-          })
-          .catch((error) => {
-            console.error("Error updating points:", error);
-            alert("Error updating points. Please try again.");
-          });
-      }
+      const pointsInput = document.getElementById(`pointsInput_${playerId}`);
+      const newPoints = parseInt(pointsInput.value, 10) || 0;
+      const playersRef = db.ref("users/" + playerId);
+      playersRef.update({ points: newPoints })
+        .then(() => {
+          alert("Points updated successfully!");
+          fetchPlayers(); // Refresh player list
+        })
+        .catch((error) => {
+          console.error("Error updating points:", error);
+          alert("Error updating points. Please try again.");
+        });
     }
 
     // Add new product
@@ -208,15 +232,12 @@
       const productsRef = db.ref("products");
       productsRef.on("value", (snapshot) => {
         const productList = document.getElementById("productList");
-        productList.innerHTML = ""; // Clear previous products
+        productList.innerHTML = ""; // Clear previous list
 
         snapshot.forEach((childSnapshot) => {
           const product = childSnapshot.val();
           const productItem = document.createElement("div");
-          productItem.className = "product-item";
-          productItem.innerHTML = `
-            <strong>${product.name}</strong> - <span>${product.points} Points</span>
-          `;
+          productItem.innerHTML = `<strong>${product.name}</strong> - ${product.points} Points`;
           productList.appendChild(productItem);
         });
       });
@@ -259,9 +280,7 @@
           const objective = childSnapshot.val();
           const objectiveItem = document.createElement("div");
           objectiveItem.className = "objective-item";
-          objectiveItem.innerHTML = `
-            <strong>${objective.name}</strong> - <span>${objective.points} Points</span>
-          `;
+          objectiveItem.innerHTML = `<strong>${objective.name}</strong> - <span>${objective.points} Points</span>`;
           objectivesList.appendChild(objectiveItem);
         });
       });
