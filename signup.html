@@ -132,16 +132,25 @@
           const user = userCredential.user;
           alert("Sign up successful!");
 
-          // Save additional profile information in the database
-          db.ref("users/" + user.uid).set({
+          // Prepare user data to save in Firebase
+          const userData = {
             firstName: firstName,
             lastName: lastName,
             depot: depot,
             points: 0,
             level: 1,
             badges: {}
-          });
-          window.location.href = "profile.html";  // Redirect to profile after successful sign-up
+          };
+
+          // Save the user data immediately after sign-up
+          db.ref("users/" + user.uid).set(userData)
+            .then(() => {
+              console.log("User data saved successfully in Firebase:", userData);
+              window.location.href = "profile.html";  // Redirect to profile after successful sign-up
+            })
+            .catch((error) => {
+              console.error("Error saving user data:", error);
+            });
         })
         .catch(error => {
           console.error("Sign Up Error:", error.message);
