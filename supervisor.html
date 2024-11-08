@@ -46,15 +46,15 @@
       display: flex;
       justify-content: space-around;
       padding: 20px;
-      flex-wrap: wrap; /* Allows wrapping for smaller screens */
+      flex-wrap: wrap;
     }
     .card {
       background-color: #ffffff;
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 30%; /* Adjust width for cards */
-      margin-bottom: 20px; /* Add space below each card */
+      width: 30%; 
+      margin-bottom: 20px;
     }
     button {
       padding: 10px 20px;
@@ -76,17 +76,6 @@
       border: 1px solid #97CFF3;
       border-radius: 5px;
       box-sizing: border-box;
-    }
-    .adjust-points {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .adjust-points input {
-      width: 60px; /* Fixed width for the points adjustment */
-      text-align: center; /* Center align the text in input */
     }
     .remove-button {
       background-color: #FF4E59;
@@ -182,13 +171,12 @@
           playerItem.innerHTML = `
             <strong>${playerData.firstName} ${playerData.lastName}</strong>
             <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
-            <div class="adjust-points">
-              <button onclick="adjustPoints('${playerId}', -10)">-</button>
-              <input type="text" id="pointsInput_${playerId}" value="${playerData.points}" readonly>
-              <button onclick="adjustPoints('${playerId}', 10)">+</button>
-            </div>
             <button class="remove-button" onclick="removePlayer('${playerId}')">Remove Player</button>
             <button onclick="updatePoints('${playerId}')">Update Points</button>
+            <div>
+              <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
+              <button onclick="adjustPoints('${playerId}')">Adjust</button>
+            </div>
           `;
           playersList.appendChild(playerItem);
         });
@@ -196,29 +184,34 @@
     }
 
     // Function to adjust points for a player
-    function adjustPoints(playerId, change) {
-      const pointsInput = document.getElementById(`pointsInput_${playerId}`);
-      let currentPoints = parseInt(pointsInput.value, 10) || 0;
-      pointsInput.value = currentPoints + change;
+    function adjustPoints(playerId) {
+      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
+      const change = parseInt(pointsInput.value, 10) || 0;
+      const playerRef = db.ref("users/" + playerId);
+
+      playerRef.once("value", (snapshot) => {
+        const currentPoints = snapshot.val().points || 0;
+        const newPoints = currentPoints + change;
+
+        playerRef.update({ points: newPoints })
+          .then(() => {
+            alert("Points adjusted successfully!");
+            fetchPlayers(); // Refresh player list
+          })
+          .catch((error) => {
+            console.error("Error adjusting points:", error);
+            alert("Error adjusting points. Please try again.");
+          });
+      });
     }
 
     // Function to update points for a player
     function updatePoints(playerId) {
-      const pointsInput = document.getElementById(`pointsInput_${playerId}`);
-      const newPoints = parseInt(pointsInput.value, 10) || 0;
-      const playersRef = db.ref("users/" + playerId);
-      playersRef.update({ points: newPoints })
-        .then(() => {
-          alert("Points updated successfully!");
-          fetchPlayers(); // Refresh player list
-        })
-        .catch((error) => {
-          console.error("Error updating points:", error);
-          alert("Error updating points. Please try again.");
-        });
+      const points = document.getElementById(`points_${playerId}`).innerText;
+      alert(`Current points for ${playerId}: ${points}`);
     }
 
-    // Remove a player
+    // Function to remove a player
     function removePlayer(playerId) {
       const playersRef = db.ref("users/" + playerId);
       playersRef.remove()
