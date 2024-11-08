@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile - Telesales Game</title>
+  <title>Telesales Game Profile</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
     /* General Styles */
@@ -47,27 +47,12 @@
       border-radius: 5px;
       cursor: pointer;
       font-weight: bold;
-      margin: 5px;
+      margin-top: 10px;
       transition: background 0.3s;
       display: inline-block;
     }
     button:hover {
       background-color: #FF4E59;
-    }
-    h2 {
-      color: #617B8F;
-      font-size: 1.5em;
-      margin-bottom: 10px;
-    }
-    .user-info {
-      font-size: 1.2em;
-      color: #274358;
-      margin-bottom: 20px;
-    }
-    .menu {
-      display: flex;
-      justify-content: space-around;
-      margin-top: 20px;
     }
   </style>
 </head>
@@ -79,20 +64,14 @@
 
   <div class="profile-card">
     <h2>Welcome, <span id="userFirstName">User</span>!</h2>
-    <p class="user-info">Current Points: <span id="userPoints">0</span></p>
-
-    <!-- Navigation Menu -->
-    <div class="menu">
-      <button onclick="goToPage('index.html')">Home</button>
-      <button onclick="goToPage('game.html')">Play Game</button>
-      <button onclick="goToPage('achievements.html')">Achievements</button>
-      <button onclick="goToPage('settings.html')">Settings</button>
-    </div>
-
-    <button onclick="logOut()" style="margin-top: 20px;">Log Out</button>
+    <p>Current Points: <span id="userPoints">0</span></p>
+    <button onclick="goToPage('home.html')">Home</button>
+    <button onclick="goToPage('game.html')">Play Game</button>
+    <button onclick="goToPage('achievements.html')">Achievements</button>
+    <button onclick="goToPage('settings.html')">Settings</button>
+    <button onclick="logOut()">Log Out</button>
   </div>
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -120,26 +99,23 @@
       if (user) {
         console.log("Authenticated user ID:", user.uid); // Debugging: Check user ID
 
-        // Get user information from database
+        // Get user information from the database
         const userRef = db.ref("users/" + user.uid);
         userRef.once("value")
           .then((snapshot) => {
             const userData = snapshot.val();
             console.log("User data fetched from Firebase:", userData); // Debugging: Log the user data
 
-            // Check if firstName exists in the fetched data
+            // Display user information if available
             if (userData && userData.firstName) {
               document.getElementById("userFirstName").innerText = userData.firstName;
+              document.getElementById("userPoints").innerText = userData.points || 0;
             } else {
-              document.getElementById("userFirstName").innerText = "User";
-              console.warn("First name not found in user data."); // Debugging: Log a warning if firstName is missing
+              console.warn("First name not found in user data.");
             }
-
-            // Display user points if available
-            document.getElementById("userPoints").innerText = userData.points || 0;
           })
           .catch((error) => {
-            console.error("Error fetching user data:", error); // Debugging: Log any errors in fetching data
+            console.error("Error fetching user data:", error); // Log any errors in fetching data
           });
       } else {
         // Redirect to login if not authenticated
@@ -160,7 +136,7 @@
           window.location.href = "login.html";
         })
         .catch((error) => {
-          console.error("Logout Error:", error.message);
+          console.error("Log Out Error:", error);
           alert("Error: " + error.message);
         });
     }
