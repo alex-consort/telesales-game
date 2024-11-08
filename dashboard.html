@@ -34,6 +34,7 @@
     h1 {
       color: var(--blue);
       font-size: 2.5em;
+      margin-bottom: 20px;
     }
     .logo {
       margin-top: 20px;
@@ -62,14 +63,20 @@
     }
     /* Cards */
     .card {
-      flex: 1 1 300px;
       background-color: white;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       padding: 20px;
       margin: 20px auto;
+      transition: transform 0.2s;
     }
-    /* Leaderboard */
+    .card:hover {
+      transform: scale(1.02);
+    }
+    /* Leaderboard Styles */
+    .leaderboard {
+      text-align: left;
+    }
     .leaderboard ul {
       list-style: none;
       padding: 0;
@@ -77,8 +84,17 @@
     .leaderboard li {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
+      padding: 12px 20px;
       border-bottom: 1px solid #ddd;
+      font-size: 1.2em;
+    }
+    .leaderboard li:first-child {
+      font-weight: bold;
+      color: var(--rose);
+      border-top: 2px solid var(--rose);
+    }
+    .leaderboard li:hover {
+      background-color: #f0f0f0;
     }
   </style>
 </head>
@@ -178,13 +194,22 @@
           const leaderboardList = document.getElementById("leaderboard");
           leaderboardList.innerHTML = ""; // Clear existing entries
 
-          // Create leaderboard entries
+          // Create an array to sort leaderboard entries
+          const entries = [];
           for (const userId in leaderboard) {
             const user = leaderboard[userId];
-            const listItem = document.createElement("li");
-            listItem.innerText = `${user.firstName} ${user.lastName}: ${user.points} points`;
-            leaderboardList.appendChild(listItem);
+            entries.push({ name: `${user.firstName} ${user.lastName}`, points: user.points });
           }
+
+          // Sort entries by points in descending order
+          entries.sort((a, b) => b.points - a.points);
+
+          // Create leaderboard entries
+          entries.forEach(entry => {
+            const listItem = document.createElement("li");
+            listItem.innerText = `${entry.name}: ${entry.points} points`;
+            leaderboardList.appendChild(listItem);
+          });
         })
         .catch((error) => {
           console.error("Error fetching leaderboard data:", error);
