@@ -55,6 +55,7 @@
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
       width: 30%; 
       margin-bottom: 20px;
+      text-align: left;
     }
     button {
       padding: 10px 20px;
@@ -81,13 +82,11 @@
       background-color: #FF4E59;
       margin-top: 10px;
     }
-    /* Styling adjustments for improved readability */
     .short-dated-product {
       border: 1px solid #FF4E59;
       padding: 15px;
       border-radius: 5px;
       margin-bottom: 10px;
-      text-align: left;
     }
     .short-dated-product strong {
       font-size: 1.1em;
@@ -143,6 +142,11 @@
     </div>
   </div>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
@@ -182,6 +186,28 @@
       });
     }
 
+    function adjustPoints(playerId) {
+      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
+      const change = parseInt(pointsInput.value, 10) || 0;
+      const playerRef = db.ref("users/" + playerId);
+
+      playerRef.once("value", (snapshot) => {
+        const currentPoints = snapshot.val().points || 0;
+        const newPoints = currentPoints + change;
+
+        playerRef.update({ points: newPoints })
+          .then(() => {
+            alert("Points adjusted successfully!");
+            fetchPlayers();
+          })
+          .catch((error) => {
+            console.error("Error adjusting points:", error);
+            alert("Error adjusting points. Please try again.");
+          });
+      });
+    }
+
+    // Fetch and display short dated products
     function fetchShortDatedProducts() {
       const shortDatedRef = db.ref("shortDatedProducts");
       shortDatedRef.on("value", (snapshot) => {
@@ -241,6 +267,49 @@
       });
     }
 
+    // Remove short dated product
+    function removeShortDatedProduct(productId) {
+      const shortDatedRef = db.ref("shortDatedProducts/" + productId);
+      shortDatedRef.remove()
+        .then(() => {
+          alert("Short dated product removed successfully!");
+          fetchShortDatedProducts();
+        })
+        .catch((error) => {
+          console.error("Error removing short dated product:", error);
+          alert("Error removing short dated product. Please try again.");
+        });
+    }
+
+    // Remove product
+    function removeProduct(productId) {
+      const productsRef = db.ref("products/" + productId);
+      productsRef.remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts();
+        })
+        .catch((error) => {
+          console.error("Error removing product:", error);
+          alert("Error removing product. Please try again.");
+        });
+    }
+
+    // Remove objective
+    function removeObjective(objectiveId) {
+      const objectivesRef = db.ref("objectives/" + objectiveId);
+      objectivesRef.remove()
+        .then(() => {
+          alert("Objective removed successfully!");
+          fetchObjectives();
+        })
+        .catch((error) => {
+          console.error("Error removing objective:", error);
+          alert("Error removing objective. Please try again.");
+        });
+    }
+
+    // Initial data fetch
     fetchPlayers();
     fetchProducts();
     fetchObjectives();
