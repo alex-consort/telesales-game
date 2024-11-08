@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Play Game - Telesales Game</title>
+  <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Calibri', sans-serif;
+      background-color: #f4f6f9;
+      color: #274358;
+      text-align: center;
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: #617B8F;
+    }
+    .logo {
+      height: 50px;
+      margin-right: 20px;
+    }
+    .game-title {
+      color: #FFFFFF;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+    /* Game Section */
+    .game-container {
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .points-display {
+      font-size: 1.5em;
+      color: #617B8F;
+      margin: 20px 0;
+    }
+    .task-button {
+      padding: 10px 20px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1.2em;
+      transition: background 0.3s;
+    }
+    .task-button:hover {
+      background-color: #FF4E59;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
+    <h1 class="game-title">Telesales Game</h1>
+  </header>
+
+  <div class="game-container">
+    <h2>Complete Tasks to Earn Points!</h2>
+    <p class="points-display">Current Points: <span id="points">0</span></p>
+    <button class="task-button" onclick="earnPoints()">Complete Task (+100 Points)</button>
+  </div>
+
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+
+    // Your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    let currentPoints = 0;
+
+    // Function to update points in Firebase
+    function earnPoints() {
+      console.log("Earn points button clicked");
+      const newPoints = currentPoints + 100;
+      const user = auth.currentUser;
+
+      if (user) {
+        const userPointsRef = ref(db, "users/" + user.uid + "/points");
+        set(userPointsRef, newPoints)
+          .then(() => {
+            console.log("Points updated to:", newPoints);
+            alert("You earned 100 points!");
+          })
+          .catch(error => console.error("Error updating points:", error));
+      } else {
+        console.error("No authenticated user");
+        alert("You need to be logged in to earn points.");
+      }
+    }
+
+    // Listen for changes to the user's points in Firebase
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("User authenticated:", user.uid);
+        const userPointsRef = ref(db, "users/" + user.uid + "/points");
+        onValue(userPointsRef, (snapshot) => {
+          currentPoints = snapshot.val() || 0;
+          console.log("Current points:", currentPoints);
+          document.getElementById("points").innerText = currentPoints;
+        });
+      } else {
+        console.log("User not authenticated, redirecting to login");
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+</body>
+</html>
