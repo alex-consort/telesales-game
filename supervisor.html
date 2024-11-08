@@ -53,7 +53,7 @@
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 45%; /* Adjust width for cards */
+      width: 30%; /* Adjust width for cards */
       margin-bottom: 20px; /* Add space below each card */
     }
     button {
@@ -168,8 +168,10 @@
           const playerData = childSnapshot.val();
           const playerId = childSnapshot.key;
           const playerItem = document.createElement("div");
+          playerItem.className = "card"; // Add card styling
           playerItem.innerHTML = `
-            <strong>${playerData.firstName} ${playerData.lastName}</strong> - Points: <span id="points_${playerId}">${playerData.points}</span>
+            <strong>${playerData.firstName} ${playerData.lastName}</strong>
+            <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
             <div class="adjust-points">
               <button onclick="adjustPoints('${playerId}', -10)">-</button>
               <input type="text" id="pointsInput_${playerId}" value="${playerData.points}" readonly>
@@ -257,9 +259,10 @@
           const product = childSnapshot.val();
           const productId = childSnapshot.key;
           const productItem = document.createElement("div");
+          productItem.className = "card"; // Add card styling
           productItem.innerHTML = `
             <strong>${product.name}</strong> - ${product.points} Points
-            <button onclick="removeProduct('${productId}')">Remove Product</button>
+            <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
           `;
           productList.appendChild(productItem);
         });
@@ -317,9 +320,10 @@
           const objective = childSnapshot.val();
           const objectiveId = childSnapshot.key;
           const objectiveItem = document.createElement("div");
+          objectiveItem.className = "card"; // Add card styling
           objectiveItem.innerHTML = `
             <strong>${objective.name}</strong> - ${objective.points} Points
-            <button onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+            <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
           `;
           objectivesList.appendChild(objectiveItem);
         });
