@@ -80,16 +80,18 @@
     .task-button:hover {
       background-color: #FF4E59;
     }
-    /* Product Section */
-    .product-list {
+    /* Leaderboard Section */
+    .leaderboard-container {
       margin-top: 20px;
       text-align: left;
     }
-    .product-item {
+    .leaderboard {
+      list-style: none;
+      padding: 0;
+    }
+    .leaderboard li {
       padding: 10px;
-      border: 1px solid #97CFF3;
-      border-radius: 5px;
-      margin: 5px 0;
+      border-bottom: 1px solid #97CFF3;
     }
   </style>
 </head>
@@ -118,6 +120,14 @@
     <div class="product-list" id="productList">
       <!-- Product items will be populated here -->
     </div>
+  </div>
+
+  <!-- Leaderboard Section -->
+  <div class="leaderboard-container">
+    <h2>Leaderboard</h2>
+    <ul class="leaderboard" id="leaderboard">
+      <!-- Leaderboard items will be populated here -->
+    </ul>
   </div>
 
   <!-- Load Firebase SDKs from CDN -->
@@ -155,6 +165,7 @@
         userPointsRef.set(newPoints)
           .then(() => {
             alert("You earned 100 points!");
+            updateLeaderboard(); // Update leaderboard after earning points
           })
           .catch(error => console.error("Error updating points:", error));
       } else {
@@ -173,6 +184,7 @@
 
         // Fetch products available in the game
         fetchProducts();
+        updateLeaderboard(); // Initial leaderboard fetch
       } else {
         window.location.href = "login.html";
       }
@@ -207,11 +219,40 @@
         userPointsRef.set(newPoints)
           .then(() => {
             alert(`You earned ${points} points from the product!`);
+            updateLeaderboard(); // Update leaderboard after earning points
           })
           .catch(error => console.error("Error updating points:", error));
       } else {
         alert("You need to be logged in to earn points.");
       }
+    }
+
+    // Function to update leaderboard
+    function updateLeaderboard() {
+      const leaderboardRef = db.ref("users");
+      leaderboardRef.orderByChild("points").once("value", (snapshot) => {
+        const leaderboard = [];
+        snapshot.forEach((childSnapshot) => {
+          const childData = childSnapshot.val();
+          leaderboard.push({
+            id: childSnapshot.key,
+            name: childData.firstName || "Anonymous",
+            points: childData.points || 0
+          });
+        });
+
+        // Sort leaderboard by points descending
+        leaderboard.sort((a, b) => b.points - a.points);
+        const leaderboardList = document.getElementById("leaderboard");
+        leaderboardList.innerHTML = ""; // Clear previous leaderboard
+
+        // Populate leaderboard
+        leaderboard.forEach((user) => {
+          const listItem = document.createElement("li");
+          listItem.innerText = `${user.name}: ${user.points} Points`;
+          leaderboardList.appendChild(listItem);
+        });
+      });
     }
   </script>
 </body>
