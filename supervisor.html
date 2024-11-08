@@ -6,7 +6,6 @@
   <title>Supervisor Dashboard - Telesales Game</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
-    /* General Styles */
     body {
       font-family: 'Calibri', sans-serif;
       background-color: #f4f6f9;
@@ -15,16 +14,12 @@
       margin: 0;
       padding: 0;
     }
-    /* Title Bar Styles */
     .navbar {
       background-color: #617B8F;
       padding: 10px;
       display: flex;
       justify-content: center;
       gap: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
     }
     .navbar a {
       color: white;
@@ -47,33 +42,20 @@
       height: 50px;
       margin-right: 20px;
     }
-    .dashboard-container {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      text-align: left; /* Align text to the left */
-    }
-    /* Player List, Products, and Objectives */
-    .player-list, .product-list, .objectives-list {
-      margin: 20px 0;
-    }
-    .player-item, .product-item, .objective-item {
+    .dashboard {
       display: flex;
       justify-content: space-between;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      margin-bottom: 10px;
+      padding: 20px;
     }
-    .player-item input, .product-item input, .objective-item input {
-      width: 70px;
-      margin-left: 10px;
+    .card {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      width: 48%;
     }
     button {
-      padding: 10px;
+      padding: 10px 20px;
       color: #fff;
       background-color: #274358;
       border: none;
@@ -81,13 +63,17 @@
       cursor: pointer;
       font-weight: bold;
       margin-top: 10px;
-      transition: background 0.3s;
     }
     button:hover {
       background-color: #FF4E59;
     }
-    .form-group {
-      margin: 20px 0;
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      box-sizing: border-box;
     }
   </style>
 </head>
@@ -98,7 +84,6 @@
     <a href="game.html">Play Game</a>
     <a href="achievements.html">Achievements</a>
     <a href="settings.html">Settings</a>
-    <a href="supervisor.html">Supervisor</a>
     <a href="logout.html">Log Out</a>
   </div>
 
@@ -107,40 +92,38 @@
     <h1 class="game-title">Supervisor Dashboard</h1>
   </header>
 
-  <div class="dashboard-container">
-    <h2>Player List</h2>
-    <div class="player-list" id="playerList">
-      <!-- Player data will be populated here -->
+  <div class="dashboard">
+    <div class="card" id="playersCard">
+      <h2>Player List</h2>
+      <div id="playersList"></div>
     </div>
-
-    <h2>Add Products</h2>
-    <div class="form-group">
-      <input type="text" id="productName" placeholder="Product Name" required>
-      <input type="number" id="productPoints" placeholder="Points" min="1" required>
+    <div class="card" id="productsCard">
+      <h2>Add Products</h2>
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="number" id="productPoints" placeholder="Points">
       <button onclick="addProduct()">Add Product</button>
-    </div>
-    <div class="product-list" id="productList">
-      <!-- Product data will be populated here -->
-    </div>
-
-    <h2>Add Objectives</h2>
-    <div class="form-group">
-      <input type="text" id="objectiveName" placeholder="Objective Name" required>
-      <input type="number" id="objectivePoints" placeholder="Points" min="1" required>
-      <button onclick="addObjective()">Add Objective</button>
-    </div>
-    <div class="objectives-list" id="objectivesList">
-      <!-- Objectives will be populated here -->
+      <h2>Available Products</h2>
+      <div id="productList"></div>
     </div>
   </div>
 
-  <!-- Load Firebase SDKs from CDN -->
+  <div class="dashboard">
+    <div class="card" id="objectivesCard">
+      <h2>Add Objectives</h2>
+      <input type="text" id="objectiveName" placeholder="Objective Name">
+      <input type="number" id="objectivePoints" placeholder="Points">
+      <button onclick="addObjective()">Add Objective</button>
+      <h2>Available Objectives</h2>
+      <div id="objectivesList"></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
@@ -155,45 +138,26 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const auth = firebase.auth();
 
     // Fetch and display players
     function fetchPlayers() {
-      const usersRef = db.ref("users");
-      usersRef.on("value", (snapshot) => {
-        const players = snapshot.val();
-        const playerList = document.getElementById("playerList");
-        playerList.innerHTML = ""; // Clear previous players
+      const playersRef = db.ref("users");
+      playersRef.on("value", (snapshot) => {
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = ""; // Clear previous list
 
-        for (const userId in players) {
-          const player = players[userId];
+        snapshot.forEach((childSnapshot) => {
+          const playerData = childSnapshot.val();
+          const playerId = childSnapshot.key;
           const playerItem = document.createElement("div");
-          playerItem.className = "player-item";
           playerItem.innerHTML = `
-            ${player.firstName} (${userId}) - Points: <span id="points_${userId}">${player.points || 0}</span>
-            <input type="number" id="newPoints_${userId}" placeholder="New Points" min="0">
-            <button onclick="updatePoints('${userId}')">Update Points</button>
+            <strong>${playerData.firstName} ${playerData.lastName}</strong> - Points: <span id="points_${playerId}">${playerData.points}</span>
+            <button onclick="updatePoints('${playerId}')">Update Points</button>
           `;
-          playerList.appendChild(playerItem);
-        }
+          playersList.appendChild(playerItem);
+        });
       });
-    }
-
-    // Update player points
-    function updatePoints(userId) {
-      const newPoints = document.getElementById(`newPoints_${userId}`).value;
-      if (newPoints) {
-        db.ref(`users/${userId}/points`).set(parseInt(newPoints, 10))
-          .then(() => {
-            alert("Points updated successfully!");
-            document.getElementById(`points_${userId}`).innerText = newPoints; // Update displayed points
-          })
-          .catch((error) => {
-            console.error("Error updating points:", error);
-            alert("Error updating points. Please try again.");
-          });
-      } else {
-        alert("Please enter a valid number of points.");
-      }
     }
 
     // Add new product
@@ -226,19 +190,18 @@
     function fetchProducts() {
       const productsRef = db.ref("products");
       productsRef.on("value", (snapshot) => {
-        const products = snapshot.val();
         const productList = document.getElementById("productList");
         productList.innerHTML = ""; // Clear previous products
 
-        for (const productId in products) {
-          const product = products[productId];
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
           const productItem = document.createElement("div");
           productItem.className = "product-item";
           productItem.innerHTML = `
-            ${product.name} - <strong>${product.points} Points</strong>
+            <strong>${product.name}</strong> - <span>${product.points} Points</span>
           `;
           productList.appendChild(productItem);
-        }
+        });
       });
     }
 
@@ -272,23 +235,22 @@
     function fetchObjectives() {
       const objectivesRef = db.ref("objectives");
       objectivesRef.on("value", (snapshot) => {
-        const objectives = snapshot.val();
         const objectivesList = document.getElementById("objectivesList");
         objectivesList.innerHTML = ""; // Clear previous objectives
 
-        for (const objectiveId in objectives) {
-          const objective = objectives[objectiveId];
+        snapshot.forEach((childSnapshot) => {
+          const objective = childSnapshot.val();
           const objectiveItem = document.createElement("div");
           objectiveItem.className = "objective-item";
           objectiveItem.innerHTML = `
-            ${objective.name} - <strong>${objective.points} Points</strong>
+            <strong>${objective.name}</strong> - <span>${objective.points} Points</span>
           `;
           objectivesList.appendChild(objectiveItem);
-        }
+        });
       });
     }
 
-    // Initial fetch
+    // Call fetch functions to display initial data
     fetchPlayers();
     fetchProducts();
     fetchObjectives();
