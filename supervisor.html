@@ -101,7 +101,7 @@
   </header>
 
   <div class="dashboard">
-    <!-- Player List Section with Instruction Text -->
+    <!-- Player List Section -->
     <div class="card" id="playersCard">
       <h2>Player List</h2>
       <p>To adjust a player’s points, enter a positive number to add points or a negative number (e.g., -5) to deduct points, then click "Adjust Points".</p>
@@ -163,7 +163,6 @@
 
     // Fetch players
     function fetchPlayers() {
-      console.log("Fetching players...");
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
         const playersList = document.getElementById("playersList");
@@ -173,25 +172,35 @@
           snapshot.forEach((childSnapshot) => {
             const playerData = childSnapshot.val();
             const playerId = childSnapshot.key;
-            console.log("Player:", playerData);
             playersList.innerHTML += `
               <div class="card">
                 <strong>${playerData.firstName} ${playerData.lastName}</strong>
                 <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
                 <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
                 <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
+                <button class="remove-button" onclick="removePlayer('${playerId}')">Remove Player</button>
               </div>`;
           });
         } else {
-          console.warn("No players found in Firebase.");
           playersList.innerHTML = "<p>No players found.</p>";
         }
       });
     }
 
+    function removePlayer(playerId) {
+      db.ref("users/" + playerId).remove()
+        .then(() => {
+          alert("Player removed successfully!");
+          fetchPlayers();
+        })
+        .catch((error) => {
+          console.error("Error removing player:", error);
+          alert("Error removing player. Please try again.");
+        });
+    }
+
     // Fetch products
     function fetchProducts() {
-      console.log("Fetching products...");
       const productsRef = db.ref("products");
       productsRef.on("value", (snapshot) => {
         const productList = document.getElementById("productList");
@@ -201,22 +210,32 @@
           snapshot.forEach((childSnapshot) => {
             const product = childSnapshot.val();
             const productId = childSnapshot.key;
-            console.log("Product:", product);
             productList.innerHTML += `
               <div class="card">
                 <strong>${product.name}</strong> - ${product.points} Points
+                <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
               </div>`;
           });
         } else {
-          console.warn("No products found in Firebase.");
           productList.innerHTML = "<p>No products found.</p>";
         }
       });
     }
 
+    function removeProduct(productId) {
+      db.ref("products/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts();
+        })
+        .catch((error) => {
+          console.error("Error removing product:", error);
+          alert("Error removing product. Please try again.");
+        });
+    }
+
     // Fetch objectives
     function fetchObjectives() {
-      console.log("Fetching objectives...");
       const objectivesRef = db.ref("objectives");
       objectivesRef.on("value", (snapshot) => {
         const objectivesList = document.getElementById("objectivesList");
@@ -226,22 +245,32 @@
           snapshot.forEach((childSnapshot) => {
             const objective = childSnapshot.val();
             const objectiveId = childSnapshot.key;
-            console.log("Objective:", objective);
             objectivesList.innerHTML += `
               <div class="card">
                 <strong>${objective.name}</strong> - ${objective.points} Points
+                <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
               </div>`;
           });
         } else {
-          console.warn("No objectives found in Firebase.");
           objectivesList.innerHTML = "<p>No objectives found.</p>";
         }
       });
     }
 
+    function removeObjective(objectiveId) {
+      db.ref("objectives/" + objectiveId).remove()
+        .then(() => {
+          alert("Objective removed successfully!");
+          fetchObjectives();
+        })
+        .catch((error) => {
+          console.error("Error removing objective:", error);
+          alert("Error removing objective. Please try again.");
+        });
+    }
+
     // Fetch short-dated products
     function fetchShortDatedProducts() {
-      console.log("Fetching short-dated products...");
       const shortDatedRef = db.ref("shortDatedProducts");
       shortDatedRef.on("value", (snapshot) => {
         const shortDatedList = document.getElementById("shortDatedProductsList");
@@ -251,19 +280,30 @@
           snapshot.forEach((childSnapshot) => {
             const product = childSnapshot.val();
             const productId = childSnapshot.key;
-            console.log("Short-dated product:", product);
             shortDatedList.innerHTML += `
               <div class="card">
                 <strong>${product.description}</strong><br>
                 <span class="price">£${parseFloat(product.price).toFixed(2)}</span> (Points: ${product.points})<br>
                 Expiry Date: ${new Date(product.date).toLocaleDateString('en-GB')}
+                <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
               </div>`;
           });
         } else {
-          console.warn("No short-dated products found in Firebase.");
           shortDatedList.innerHTML = "<p>No short-dated products found.</p>";
         }
       });
+    }
+
+    function removeShortDatedProduct(productId) {
+      db.ref("shortDatedProducts/" + productId).remove()
+        .then(() => {
+          alert("Short-dated product removed successfully!");
+          fetchShortDatedProducts();
+        })
+        .catch((error) => {
+          console.error("Error removing short-dated product:", error);
+          alert("Error removing short-dated product. Please try again.");
+        });
     }
 
     // Initial data fetch
