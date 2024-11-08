@@ -82,27 +82,6 @@
       background-color: #FF4E59;
       margin-top: 10px;
     }
-    .short-dated-product {
-      border: 1px solid #FF4E59;
-      padding: 15px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-    }
-    .short-dated-product strong {
-      font-size: 1.1em;
-      color: #274358;
-    }
-    .short-dated-product .price {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #FF4E59;
-    }
-    .adjust-points-section {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      align-items: center;
-    }
   </style>
 </head>
 <body>
@@ -163,72 +142,33 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fetch and display players with simplified points adjustment
+    // Debugging function
+    function logError(error) {
+      console.error("Error:", error);
+    }
+
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
         const playersList = document.getElementById("playersList");
         playersList.innerHTML = ""; 
 
-        snapshot.forEach((childSnapshot) => {
-          const playerData = childSnapshot.val();
-          const playerId = childSnapshot.key;
-          playersList.innerHTML += `
-            <div class="card">
-              <strong>${playerData.firstName} ${playerData.lastName}</strong>
-              <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
-              <div class="adjust-points-section">
-                <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
-                <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
-              </div>
-            </div>`;
-        });
-      });
-    }
-
-    function adjustPoints(playerId) {
-      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
-      const change = parseInt(pointsInput.value, 10) || 0;
-      const playerRef = db.ref("users/" + playerId);
-
-      playerRef.once("value", (snapshot) => {
-        const currentPoints = snapshot.val().points || 0;
-        const newPoints = currentPoints + change;
-
-        playerRef.update({ points: newPoints })
-          .then(() => {
-            alert("Points adjusted successfully!");
-            fetchPlayers();
-          })
-          .catch((error) => {
-            console.error("Error adjusting points:", error);
-            alert("Error adjusting points. Please try again.");
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const playerData = childSnapshot.val();
+            const playerId = childSnapshot.key;
+            playersList.innerHTML += `
+              <div class="card">
+                <strong>${playerData.firstName} ${playerData.lastName}</strong>
+                <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
+              </div>`;
           });
-      });
-    }
-
-    // Fetch and display short dated products
-    function fetchShortDatedProducts() {
-      const shortDatedRef = db.ref("shortDatedProducts");
-      shortDatedRef.on("value", (snapshot) => {
-        const shortDatedList = document.getElementById("shortDatedProductsList");
-        shortDatedList.innerHTML = ""; 
-
-        snapshot.forEach((childSnapshot) => {
-          const product = childSnapshot.val();
-          const productId = childSnapshot.key;
-          const formattedDate = new Date(product.date).toLocaleDateString('en-GB');
-          const formattedPrice = `£${parseFloat(product.price).toFixed(2)}`;
-
-          shortDatedList.innerHTML += `
-            <div class="short-dated-product">
-              <strong>${product.description}</strong><br>
-              <span class="price">${formattedPrice}</span> (Points: ${product.points})<br>
-              Expiry Date: ${formattedDate}<br>
-              <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
-            </div>`;
-        });
-      });
+          console.log("Players loaded successfully.");
+        } else {
+          playersList.innerHTML = "<p>No players found.</p>";
+          console.log("No players data found.");
+        }
+      }, logError);
     }
 
     function fetchProducts() {
@@ -237,16 +177,20 @@
         const productList = document.getElementById("productList");
         productList.innerHTML = ""; 
 
-        snapshot.forEach((childSnapshot) => {
-          const product = childSnapshot.val();
-          const productId = childSnapshot.key;
-          productList.innerHTML += `
-            <div class="card">
-              <strong>${product.name}</strong> - ${product.points} Points
-              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
-            </div>`;
-        });
-      });
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const product = childSnapshot.val();
+            productList.innerHTML += `
+              <div class="card">
+                <strong>${product.name}</strong> - ${product.points} Points
+              </div>`;
+          });
+          console.log("Products loaded successfully.");
+        } else {
+          productList.innerHTML = "<p>No products found.</p>";
+          console.log("No products data found.");
+        }
+      }, logError);
     }
 
     function fetchObjectives() {
@@ -255,61 +199,49 @@
         const objectivesList = document.getElementById("objectivesList");
         objectivesList.innerHTML = ""; 
 
-        snapshot.forEach((childSnapshot) => {
-          const objective = childSnapshot.val();
-          const objectiveId = childSnapshot.key;
-          objectivesList.innerHTML += `
-            <div class="card">
-              <strong>${objective.name}</strong> - ${objective.points} Points
-              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
-            </div>`;
-        });
-      });
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const objective = childSnapshot.val();
+            objectivesList.innerHTML += `
+              <div class="card">
+                <strong>${objective.name}</strong> - ${objective.points} Points
+              </div>`;
+          });
+          console.log("Objectives loaded successfully.");
+        } else {
+          objectivesList.innerHTML = "<p>No objectives found.</p>";
+          console.log("No objectives data found.");
+        }
+      }, logError);
     }
 
-    // Remove short dated product
-    function removeShortDatedProduct(productId) {
-      const shortDatedRef = db.ref("shortDatedProducts/" + productId);
-      shortDatedRef.remove()
-        .then(() => {
-          alert("Short dated product removed successfully!");
-          fetchShortDatedProducts();
-        })
-        .catch((error) => {
-          console.error("Error removing short dated product:", error);
-          alert("Error removing short dated product. Please try again.");
-        });
+    function fetchShortDatedProducts() {
+      const shortDatedRef = db.ref("shortDatedProducts");
+      shortDatedRef.on("value", (snapshot) => {
+        const shortDatedList = document.getElementById("shortDatedProductsList");
+        shortDatedList.innerHTML = ""; 
+
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const product = childSnapshot.val();
+            const formattedDate = new Date(product.date).toLocaleDateString('en-GB');
+            const formattedPrice = `£${parseFloat(product.price).toFixed(2)}`;
+            shortDatedList.innerHTML += `
+              <div class="short-dated-product">
+                <strong>${product.description}</strong><br>
+                <span class="price">${formattedPrice}</span> (Points: ${product.points})<br>
+                Expiry Date: ${formattedDate}
+              </div>`;
+          });
+          console.log("Short dated products loaded successfully.");
+        } else {
+          shortDatedList.innerHTML = "<p>No short-dated products found.</p>";
+          console.log("No short-dated products data found.");
+        }
+      }, logError);
     }
 
-    // Remove product
-    function removeProduct(productId) {
-      const productsRef = db.ref("products/" + productId);
-      productsRef.remove()
-        .then(() => {
-          alert("Product removed successfully!");
-          fetchProducts();
-        })
-        .catch((error) => {
-          console.error("Error removing product:", error);
-          alert("Error removing product. Please try again.");
-        });
-    }
-
-    // Remove objective
-    function removeObjective(objectiveId) {
-      const objectivesRef = db.ref("objectives/" + objectiveId);
-      objectivesRef.remove()
-        .then(() => {
-          alert("Objective removed successfully!");
-          fetchObjectives();
-        })
-        .catch((error) => {
-          console.error("Error removing objective:", error);
-          alert("Error removing objective. Please try again.");
-        });
-    }
-
-    // Initial data fetch
+    // Initial data fetch with debugging messages
     fetchPlayers();
     fetchProducts();
     fetchObjectives();
