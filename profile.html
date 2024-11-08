@@ -100,7 +100,7 @@
   <script>
     // Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",  // Replace with your actual API key
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
@@ -118,22 +118,28 @@
     // Fetch and display user information
     auth.onAuthStateChanged((user) => {
       if (user) {
+        console.log("Authenticated user ID:", user.uid); // Debugging: Check user ID
+
         // Get user information from database
         const userRef = db.ref("users/" + user.uid);
         userRef.once("value")
           .then((snapshot) => {
             const userData = snapshot.val();
-            console.log("User data:", userData); // Log user data for debugging
+            console.log("User data fetched from Firebase:", userData); // Debugging: Log the user data
+
+            // Check if firstName exists in the fetched data
             if (userData && userData.firstName) {
               document.getElementById("userFirstName").innerText = userData.firstName;
             } else {
               document.getElementById("userFirstName").innerText = "User";
-              console.warn("First name not found in user data."); // Log warning if first name is missing
+              console.warn("First name not found in user data."); // Debugging: Log a warning if firstName is missing
             }
+
+            // Display user points if available
             document.getElementById("userPoints").innerText = userData.points || 0;
           })
           .catch((error) => {
-            console.error("Error fetching user data:", error); // Log error if fetching data fails
+            console.error("Error fetching user data:", error); // Debugging: Log any errors in fetching data
           });
       } else {
         // Redirect to login if not authenticated
