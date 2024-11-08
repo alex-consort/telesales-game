@@ -22,6 +22,9 @@
       display: flex;
       justify-content: center;
       gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     .navbar a {
       color: white;
@@ -77,6 +80,17 @@
     .task-button:hover {
       background-color: #FF4E59;
     }
+    /* Product Section */
+    .product-list {
+      margin-top: 20px;
+      text-align: left;
+    }
+    .product-item {
+      padding: 10px;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      margin: 5px 0;
+    }
   </style>
 </head>
 <body>
@@ -86,6 +100,7 @@
     <a href="game.html">Play Game</a>
     <a href="achievements.html">Achievements</a>
     <a href="settings.html">Settings</a>
+    <a href="supervisor.html">Supervisor</a>
     <a href="logout.html">Log Out</a>
   </div>
 
@@ -98,6 +113,11 @@
     <h2>Complete Tasks to Earn Points!</h2>
     <p class="points-display">Current Points: <span id="points">0</span></p>
     <button class="task-button" onclick="earnPoints()">Complete Task (+100 Points)</button>
+
+    <h3>Available Products</h3>
+    <div class="product-list" id="productList">
+      <!-- Product items will be populated here -->
+    </div>
   </div>
 
   <!-- Load Firebase SDKs from CDN -->
@@ -150,10 +170,49 @@
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
         });
+
+        // Fetch products available in the game
+        fetchProducts();
       } else {
         window.location.href = "login.html";
       }
     });
+
+    // Function to fetch products
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const products = snapshot.val();
+        const productList = document.getElementById("productList");
+        productList.innerHTML = ""; // Clear previous products
+
+        for (const key in products) {
+          const product = products[key];
+          const productItem = document.createElement("div");
+          productItem.className = "product-item";
+          productItem.innerText = `${product.name}: ${product.points} Points`;
+          productItem.onclick = () => earnPointsFromProduct(product.points);
+          productList.appendChild(productItem);
+        }
+      });
+    }
+
+    // Function to earn points from product
+    function earnPointsFromProduct(points) {
+      const newPoints = currentPoints + points;
+      const user = auth.currentUser;
+
+      if (user) {
+        const userPointsRef = db.ref("users/" + user.uid + "/points");
+        userPointsRef.set(newPoints)
+          .then(() => {
+            alert(`You earned ${points} points from the product!`);
+          })
+          .catch(error => console.error("Error updating points:", error));
+      } else {
+        alert("You need to be logged in to earn points.");
+      }
+    }
   </script>
 </body>
 </html>
