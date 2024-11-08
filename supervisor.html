@@ -333,7 +333,59 @@
         });
     }
 
-    // Call fetch functions on page load
+    // Add new product
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
+
+      if (name && points) {
+        db.ref("products").push({ name, points }).then(() => {
+          alert("Product added successfully!");
+          document.getElementById("productName").value = "";
+          document.getElementById("productPoints").value = "";
+        });
+      } else {
+        alert("Please enter a product name and points.");
+      }
+    }
+
+    // Add new objective
+    function addObjective() {
+      const name = document.getElementById("objectiveName").value;
+      const points = parseInt(document.getElementById("objectivePoints").value, 10);
+
+      if (name && points) {
+        db.ref("objectives").push({ name, points }).then(() => {
+          alert("Objective added successfully!");
+          document.getElementById("objectiveName").value = "";
+          document.getElementById("objectivePoints").value = "";
+        });
+      } else {
+        alert("Please enter an objective name and points.");
+      }
+    }
+
+    // Add new short-dated product
+    function addShortDatedProduct() {
+      const description = document.getElementById("shortDatedDescription").value;
+      const date = document.getElementById("shortDatedDate").value;
+      const price = parseFloat(document.getElementById("shortDatedPrice").value);
+      const points = parseInt(document.getElementById("shortDatedPoints").value, 10);
+
+      if (description && date && price && points) {
+        db.ref("shortDatedProducts").push({ description, date, price, points }).then(() => {
+          alert("Short-dated product added successfully!");
+          document.getElementById("shortDatedDescription").value = "";
+          document.getElementById("shortDatedDate").value = "";
+          document.getElementById("shortDatedPrice").value = "";
+          document.getElementById("shortDatedPoints").value = "";
+        });
+      } else {
+        alert("Please fill in all fields for the short-dated product.");
+      }
+    }
+
+    // Initial fetch for all data
     fetchPlayers();
     fetchProducts();
     fetchObjectives();
