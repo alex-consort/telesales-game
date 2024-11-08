@@ -180,6 +180,7 @@
                 <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
                 <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
                 <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
+                <button class="remove-button" onclick="removePlayer('${playerId}')">Remove Player</button>
               </div>`;
           });
         } else {
@@ -211,6 +212,18 @@
       });
     }
 
+    function removePlayer(playerId) {
+      db.ref("users/" + playerId).remove()
+        .then(() => {
+          alert("Player removed successfully!");
+          fetchPlayers(); // Refresh player list
+        })
+        .catch((error) => {
+          console.error("Error removing player:", error);
+          alert("Error removing player. Please try again.");
+        });
+    }
+
     // Fetch products
     function fetchProducts() {
       const productsRef = db.ref("products");
@@ -221,15 +234,29 @@
         if (snapshot.exists()) {
           snapshot.forEach((childSnapshot) => {
             const product = childSnapshot.val();
+            const productId = childSnapshot.key;
             productList.innerHTML += `
               <div class="card">
                 <strong>${product.name}</strong> - ${product.points} Points
+                <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
               </div>`;
           });
         } else {
           productList.innerHTML = "<p>No products found.</p>";
         }
       });
+    }
+
+    function removeProduct(productId) {
+      db.ref("products/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts(); // Refresh product list
+        })
+        .catch((error) => {
+          console.error("Error removing product:", error);
+          alert("Error removing product. Please try again.");
+        });
     }
 
     // Fetch objectives
@@ -242,15 +269,29 @@
         if (snapshot.exists()) {
           snapshot.forEach((childSnapshot) => {
             const objective = childSnapshot.val();
+            const objectiveId = childSnapshot.key;
             objectivesList.innerHTML += `
               <div class="card">
                 <strong>${objective.name}</strong> - ${objective.points} Points
+                <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
               </div>`;
           });
         } else {
           objectivesList.innerHTML = "<p>No objectives found.</p>";
         }
       });
+    }
+
+    function removeObjective(objectiveId) {
+      db.ref("objectives/" + objectiveId).remove()
+        .then(() => {
+          alert("Objective removed successfully!");
+          fetchObjectives(); // Refresh objectives list
+        })
+        .catch((error) => {
+          console.error("Error removing objective:", error);
+          alert("Error removing objective. Please try again.");
+        });
     }
 
     // Fetch short-dated products
@@ -263,6 +304,7 @@
         if (snapshot.exists()) {
           snapshot.forEach((childSnapshot) => {
             const product = childSnapshot.val();
+            const productId = childSnapshot.key;
             const formattedDate = new Date(product.date).toLocaleDateString('en-GB');
             const formattedPrice = `£${parseFloat(product.price).toFixed(2)}`;
             shortDatedList.innerHTML += `
@@ -270,12 +312,25 @@
                 <strong>${product.description}</strong><br>
                 <span class="price">${formattedPrice}</span> (Points: ${product.points})<br>
                 Expiry Date: ${formattedDate}
+                <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
               </div>`;
           });
         } else {
           shortDatedList.innerHTML = "<p>No short-dated products found.</p>";
         }
       });
+    }
+
+    function removeShortDatedProduct(productId) {
+      db.ref("shortDatedProducts/" + productId).remove()
+        .then(() => {
+          alert("Short-dated product removed successfully!");
+          fetchShortDatedProducts(); // Refresh short-dated products list
+        })
+        .catch((error) => {
+          console.error("Error removing short-dated product:", error);
+          alert("Error removing short-dated product. Please try again.");
+        });
     }
 
     // Call fetch functions on page load
