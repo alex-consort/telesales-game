@@ -160,6 +160,23 @@
       });
     }
 
+    // Function to update points for a player
+    function updatePoints(playerId) {
+      const newPoints = prompt("Enter new points value:");
+      if (newPoints !== null) {
+        const playersRef = db.ref("users/" + playerId);
+        playersRef.update({ points: parseInt(newPoints, 10) })
+          .then(() => {
+            alert("Points updated successfully!");
+            fetchPlayers(); // Refresh player list
+          })
+          .catch((error) => {
+            console.error("Error updating points:", error);
+            alert("Error updating points. Please try again.");
+          });
+      }
+    }
+
     // Add new product
     function addProduct() {
       const productName = document.getElementById("productName").value;
