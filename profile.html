@@ -36,7 +36,7 @@
       border-radius: 8px;
       padding: 20px;
       margin: 20px auto;
-      max-width: 300px;
+      max-width: 400px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     }
     button {
@@ -47,7 +47,7 @@
       border-radius: 5px;
       cursor: pointer;
       font-weight: bold;
-      margin-top: 10px;
+      margin: 5px;
       transition: background 0.3s;
       display: inline-block;
     }
@@ -62,6 +62,12 @@
     .user-info {
       font-size: 1.2em;
       color: #274358;
+      margin-bottom: 20px;
+    }
+    .menu {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 20px;
     }
   </style>
 </head>
@@ -72,12 +78,18 @@
   </header>
 
   <div class="profile-card">
-    <h2>Welcome, <span id="firstName"></span></h2>
+    <h2>Welcome, <span id="userFirstName">User</span>!</h2>
     <p class="user-info">Current Points: <span id="userPoints">0</span></p>
 
-    <!-- Navigation Buttons -->
-    <button onclick="goToHome()">Home</button>
-    <button onclick="logOut()">Log Out</button>
+    <!-- Navigation Menu -->
+    <div class="menu">
+      <button onclick="goToPage('index.html')">Home</button>
+      <button onclick="goToPage('game.html')">Play Game</button>
+      <button onclick="goToPage('achievements.html')">Achievements</button>
+      <button onclick="goToPage('settings.html')">Settings</button>
+    </div>
+
+    <button onclick="logOut()" style="margin-top: 20px;">Log Out</button>
   </div>
 
   <!-- Firebase SDKs -->
@@ -88,7 +100,7 @@
   <script>
     // Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",  // Replace with your actual API key
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
@@ -106,13 +118,12 @@
     // Fetch and display user information
     auth.onAuthStateChanged((user) => {
       if (user) {
-        document.getElementById("userEmail").innerText = user.email;
-
-        // Get user points from Firebase
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        userPointsRef.on("value", (snapshot) => {
-          const points = snapshot.val() || 0;
-          document.getElementById("userPoints").innerText = points;
+        // Get user information from database
+        const userRef = db.ref("users/" + user.uid);
+        userRef.once("value", (snapshot) => {
+          const userData = snapshot.val();
+          document.getElementById("userFirstName").innerText = userData.firstName || "User";
+          document.getElementById("userPoints").innerText = userData.points || 0;
         });
       } else {
         // Redirect to login if not authenticated
@@ -120,9 +131,9 @@
       }
     });
 
-    // Navigation to Home Page
-    function goToHome() {
-      window.location.href = "index.html";
+    // Function to navigate to different pages
+    function goToPage(page) {
+      window.location.href = page;
     }
 
     // Log Out Function
