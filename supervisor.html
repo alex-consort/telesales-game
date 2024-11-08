@@ -142,11 +142,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Debugging function
-    function logError(error) {
-      console.error("Error:", error);
-    }
-
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
@@ -168,7 +163,7 @@
           playersList.innerHTML = "<p>No players found.</p>";
           console.log("No players data found.");
         }
-      }, logError);
+      });
     }
 
     function fetchProducts() {
@@ -190,7 +185,7 @@
           productList.innerHTML = "<p>No products found.</p>";
           console.log("No products data found.");
         }
-      }, logError);
+      });
     }
 
     function fetchObjectives() {
@@ -212,7 +207,7 @@
           objectivesList.innerHTML = "<p>No objectives found.</p>";
           console.log("No objectives data found.");
         }
-      }, logError);
+      });
     }
 
     function fetchShortDatedProducts() {
@@ -238,10 +233,10 @@
           shortDatedList.innerHTML = "<p>No short-dated products found.</p>";
           console.log("No short-dated products data found.");
         }
-      }, logError);
+      });
     }
 
-    // Initial data fetch with debugging messages
+    // Initial data fetch
     fetchPlayers();
     fetchProducts();
     fetchObjectives();
