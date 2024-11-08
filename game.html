@@ -198,15 +198,18 @@
       const user = auth.currentUser;
 
       if (user) {
-        currentPoints += points; // Add product points
-        document.getElementById("points").innerText = currentPoints;
-
         const userPointsRef = db.ref("users/" + user.uid + "/points");
-        userPointsRef.set(currentPoints) // Update total points
-          .then(() => {
-            alert(`You earned ${points} points from the product!`);
-          })
-          .catch(error => console.error("Error updating points:", error));
+        userPointsRef.once("value").then((snapshot) => {
+          const currentUserPoints = snapshot.val() || 0;
+          const newTotalPoints = currentUserPoints + points; // Only add product points
+
+          userPointsRef.set(newTotalPoints) // Update total points
+            .then(() => {
+              alert(`You earned ${points} points from the product!`);
+              document.getElementById("points").innerText = newTotalPoints; // Update displayed points
+            })
+            .catch(error => console.error("Error updating points:", error));
+        });
       } else {
         alert("You need to be logged in to earn points.");
       }
