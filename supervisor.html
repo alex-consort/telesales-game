@@ -134,44 +134,220 @@
     </div>
   </div>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
   <script>
-    // Functions for product and objective separation, short dated product date format, and £ currency
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.appspot.com",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    // Fetch and display players
+    function fetchPlayers() {
+      const playersRef = db.ref("users");
+      playersRef.on("value", (snapshot) => {
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = ""; // Clear previous list
+
+        snapshot.forEach((childSnapshot) => {
+          const playerData = childSnapshot.val();
+          const playerId = childSnapshot.key;
+          const playerItem = document.createElement("div");
+          playerItem.className = "card"; // Add card styling
+          playerItem.innerHTML = `
+            <strong>${playerData.firstName} ${playerData.lastName}</strong>
+            <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
+            <button class="remove-button" onclick="removePlayer('${playerId}')">Remove Player</button>
+            <button onclick="updatePoints('${playerId}')">Update Points</button>
+            <div>
+              <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
+              <button onclick="adjustPoints('${playerId}')">Adjust</button>
+            </div>
+          `;
+          playersList.appendChild(playerItem);
+        });
+      });
+    }
+
+    // Function to adjust points for a player
+    function adjustPoints(playerId) {
+      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
+      const change = parseInt(pointsInput.value, 10) || 0;
+      const playerRef = db.ref("users/" + playerId);
+
+      playerRef.once("value", (snapshot) => {
+        const currentPoints = snapshot.val().points || 0;
+        const newPoints = currentPoints + change;
+
+        playerRef.update({ points: newPoints })
+          .then(() => {
+            alert("Points adjusted successfully!");
+            fetchPlayers(); // Refresh player list
+          })
+          .catch((error) => {
+            console.error("Error adjusting points:", error);
+            alert("Error adjusting points. Please try again.");
+          });
+      });
+    }
+
+    // Function to update points for a player
+    function updatePoints(playerId) {
+      const points = document.getElementById(`points_${playerId}`).innerText;
+      alert(`Current points for ${playerId}: ${points}`);
+    }
+
+    // Function to remove a player
+    function removePlayer(playerId) {
+      const playersRef = db.ref("users/" + playerId);
+      playersRef.remove()
+        .then(() => {
+          alert("Player removed successfully!");
+          fetchPlayers(); // Refresh player list
+        })
+        .catch((error) => {
+          console.error("Error removing player:", error);
+          alert("Error removing player. Please try again.");
+        });
+    }
+
+    // Add new product
     function addProduct() {
       const productName = document.getElementById("productName").value;
       const productPoints = document.getElementById("productPoints").value;
 
       if (productName && productPoints) {
-        const productsRef = db.ref("products").push();
+        const productsRef = db.ref("products").push(); // Generate a new key
         productsRef.set({
           name: productName,
           points: parseInt(productPoints, 10)
-        }).then(() => {
+        })
+        .then(() => {
           alert("Product added successfully!");
-          document.getElementById("productName").value = "";
-          document.getElementById("productPoints").value = "";
-          fetchProducts();
+          document.getElementById("productName").value = ""; // Clear input
+          document.getElementById("productPoints").value = ""; // Clear input
+          fetchProducts(); // Refresh product list
+        })
+        .catch((error) => {
+          console.error("Error adding product:", error);
+          alert("Error adding product. Please try again.");
         });
+      } else {
+        alert("Please enter product name and points.");
       }
     }
 
+    // Fetch and display products
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = ""; // Clear previous list
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          const productItem = document.createElement("div");
+          productItem.className = "card"; // Add card styling
+          productItem.innerHTML = `
+            <strong>${product.name}</strong> - ${product.points} Points
+            <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+          `;
+          productList.appendChild(productItem);
+        });
+      });
+    }
+
+    // Remove a product
+    function removeProduct(productId) {
+      const productsRef = db.ref("products/" + productId);
+      productsRef.remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts(); // Refresh product list
+        })
+        .catch((error) => {
+          console.error("Error removing product:", error);
+          alert("Error removing product. Please try again.");
+        });
+    }
+
+    // Add new objective
     function addObjective() {
       const objectiveName = document.getElementById("objectiveName").value;
       const objectivePoints = document.getElementById("objectivePoints").value;
 
       if (objectiveName && objectivePoints) {
-        const objectivesRef = db.ref("objectives").push();
+        const objectivesRef = db.ref("objectives").push(); // Generate a new key
         objectivesRef.set({
           name: objectiveName,
           points: parseInt(objectivePoints, 10)
-        }).then(() => {
+        })
+        .then(() => {
           alert("Objective added successfully!");
-          document.getElementById("objectiveName").value = "";
-          document.getElementById("objectivePoints").value = "";
-          fetchObjectives();
+          document.getElementById("objectiveName").value = ""; // Clear input
+          document.getElementById("objectivePoints").value = ""; // Clear input
+          fetchObjectives(); // Refresh objectives list
+        })
+        .catch((error) => {
+          console.error("Error adding objective:", error);
+          alert("Error adding objective. Please try again.");
         });
+      } else {
+        alert("Please enter objective name and points.");
       }
     }
 
+    // Fetch and display objectives
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectivesList = document.getElementById("objectivesList");
+        objectivesList.innerHTML = ""; // Clear previous objectives
+
+        snapshot.forEach((childSnapshot) => {
+          const objective = childSnapshot.val();
+          const objectiveId = childSnapshot.key;
+          const objectiveItem = document.createElement("div");
+          objectiveItem.className = "card"; // Add card styling
+          objectiveItem.innerHTML = `
+            <strong>${objective.name}</strong> - ${objective.points} Points
+            <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+          `;
+          objectivesList.appendChild(objectiveItem);
+        });
+      });
+    }
+
+    // Remove an objective
+    function removeObjective(objectiveId) {
+      const objectivesRef = db.ref("objectives/" + objectiveId);
+      objectivesRef.remove()
+        .then(() => {
+          alert("Objective removed successfully!");
+          fetchObjectives(); // Refresh objectives list
+        })
+        .catch((error) => {
+          console.error("Error removing objective:", error);
+          alert("Error removing objective. Please try again.");
+        });
+    }
+
+    // Add Short Dated Product
     function addShortDatedProduct() {
       const description = document.getElementById("shortDatedDescription").value;
       const date = document.getElementById("shortDatedDate").value;
@@ -181,20 +357,72 @@
       if (description && date && price && points) {
         const shortDatedRef = db.ref("shortDatedProducts").push();
         shortDatedRef.set({
-          description,
-          date: new Date(date).toLocaleDateString('en-GB'), // format date as dd/MM/yy
-          price: `£${parseFloat(price).toFixed(2)}`, // format price with £ symbol
+          description: description,
+          date: date,
+          price: parseFloat(price),
           points: parseInt(points, 10)
-        }).then(() => {
+        })
+        .then(() => {
           alert("Short dated product added successfully!");
           document.getElementById("shortDatedDescription").value = "";
           document.getElementById("shortDatedDate").value = "";
           document.getElementById("shortDatedPrice").value = "";
           document.getElementById("shortDatedPoints").value = "";
-          fetchShortDatedProducts();
+          fetchShortDatedProducts(); // Refresh short dated products list
+        })
+        .catch((error) => {
+          console.error("Error adding short dated product:", error);
+          alert("Error adding short dated product. Please try again.");
         });
+      } else {
+        alert("Please fill in all fields.");
       }
     }
+
+    // Fetch and display short dated products
+    function fetchShortDatedProducts() {
+      const shortDatedRef = db.ref("shortDatedProducts");
+      shortDatedRef.on("value", (snapshot) => {
+        const shortDatedList = document.getElementById("shortDatedProductsList");
+        shortDatedList.innerHTML = ""; // Clear previous short dated products
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          const formattedDate = new Date(product.date).toLocaleDateString('en-GB'); // Display formatted date
+          const formattedPrice = `£${parseFloat(product.price).toFixed(2)}`; // Display price with £
+
+          const productItem = document.createElement("div");
+          productItem.className = "card"; // Add card styling
+          productItem.innerHTML = `
+            <strong>${product.description}</strong> - ${formattedPrice} (Points: ${product.points})<br>
+            Expiry Date: ${formattedDate}
+            <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
+          `;
+          shortDatedList.appendChild(productItem);
+        });
+      });
+    }
+
+    // Remove a short dated product
+    function removeShortDatedProduct(productId) {
+      const shortDatedRef = db.ref("shortDatedProducts/" + productId);
+      shortDatedRef.remove()
+        .then(() => {
+          alert("Short dated product removed successfully!");
+          fetchShortDatedProducts(); // Refresh short dated products list
+        })
+        .catch((error) => {
+          console.error("Error removing short dated product:", error);
+          alert("Error removing short dated product. Please try again.");
+        });
+    }
+
+    // Initial data fetch
+    fetchPlayers();
+    fetchProducts();
+    fetchObjectives();
+    fetchShortDatedProducts();
   </script>
 </body>
 </html>
