@@ -13,43 +13,44 @@
     <p>Current Points: <span id="points">0</span></p>
     <button onclick="addPoints()">Complete Task (+100 Points)</button>
   </div>
-  <script src="script.js"></script> <!-- Link to JavaScript file -->
-  
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-  import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
-    authDomain: "telesalesgame-a09f2.firebaseapp.com",
-    databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "telesalesgame-a09f2",
-    storageBucket: "telesalesgame-a09f2.firebasestorage.app",
-    messagingSenderId: "1097332097301",
-    appId: "1:1097332097301:web:51b0151499e33f7851291c",
-    measurementId: "G-7LNG5176PW"
-  };
+  <!-- Firebase Compatibility Libraries -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  <script>
+    // Firebase configuration object
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
+    };
 
-  // Track and display points in real time
-  const pointsRef = ref(db, 'game/points');
-  onValue(pointsRef, (snapshot) => {
-    const points = snapshot.val();
-    console.log("Points loaded from Firebase:", points); // Log the points loaded from Firebase
-    document.getElementById("points").innerText = points || 0;
-  });
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-  // Function to add points to Firebase
-  function addPoints() {
-    const currentPoints = parseInt(document.getElementById("points").innerText) || 0;
-    set(pointsRef, currentPoints + 100)
-      .then(() => console.log("Points updated in Firebase:", currentPoints + 100)) // Log successful update
-      .catch(error => console.error("Error updating points in Firebase:", error)); // Log errors, if any
-    alert("You earned 100 points!");
-  }
-</script>
+    // Track and display points in real time
+    const pointsRef = db.ref('game/points');
+    pointsRef.on('value', (snapshot) => {
+      const points = snapshot.val();
+      console.log("Points loaded from Firebase:", points); // Log the points loaded from Firebase
+      document.getElementById("points").innerText = points || 0;
+    });
+
+    // Function to add points to Firebase
+    function addPoints() {
+      const currentPoints = parseInt(document.getElementById("points").innerText) || 0;
+      pointsRef.set(currentPoints + 100)
+        .then(() => console.log("Points updated in Firebase:", currentPoints + 100)) // Log successful update
+        .catch(error => console.error("Error updating points in Firebase:", error)); // Log errors, if any
+      alert("You earned 100 points!");
+    }
+  </script>
 </body>
 </html>
