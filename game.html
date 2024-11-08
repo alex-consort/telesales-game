@@ -71,13 +71,13 @@
     <button class="task-button" onclick="earnPoints()">Complete Task (+100 Points)</button>
   </div>
 
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+  <!-- Load Firebase SDKs from CDN -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
-    // Your Firebase configuration
+  <script>
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
@@ -90,9 +90,9 @@
     };
 
     // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
 
     let currentPoints = 0;
 
@@ -103,8 +103,8 @@
       const user = auth.currentUser;
 
       if (user) {
-        const userPointsRef = ref(db, "users/" + user.uid + "/points");
-        set(userPointsRef, newPoints)
+        const userPointsRef = db.ref("users/" + user.uid + "/points");
+        userPointsRef.set(newPoints)
           .then(() => {
             console.log("Points updated to:", newPoints);
             alert("You earned 100 points!");
@@ -117,11 +117,11 @@
     }
 
     // Listen for changes to the user's points in Firebase
-    onAuthStateChanged(auth, (user) => {
+    auth.onAuthStateChanged((user) => {
       if (user) {
         console.log("User authenticated:", user.uid);
-        const userPointsRef = ref(db, "users/" + user.uid + "/points");
-        onValue(userPointsRef, (snapshot) => {
+        const userPointsRef = db.ref("users/" + user.uid + "/points");
+        userPointsRef.on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
           console.log("Current points:", currentPoints);
           document.getElementById("points").innerText = currentPoints;
