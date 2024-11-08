@@ -12,6 +12,26 @@
       background-color: #f4f6f9;
       color: #274358;
       text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    /* Title Bar Styles */
+    .navbar {
+      background-color: #617B8F;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .navbar a:hover {
+      background-color: #FF4E59;
     }
     .header {
       display: flex;
@@ -60,6 +80,15 @@
   </style>
 </head>
 <body>
+
+  <div class="navbar">
+    <a href="profile.html">Profile</a>
+    <a href="game.html">Play Game</a>
+    <a href="achievements.html">Achievements</a>
+    <a href="settings.html">Settings</a>
+    <a href="logout.html">Log Out</a>
+  </div>
+
   <header class="header">
     <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
     <h1 class="game-title">Telesales Game</h1>
@@ -77,7 +106,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
   <script>
-    // Firebase configuration (using the same values from the successful test HTML)
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
@@ -98,7 +127,6 @@
 
     // Function to update points in Firebase
     function earnPoints() {
-      console.log("Earn points button clicked");
       const newPoints = currentPoints + 100;
       const user = auth.currentUser;
 
@@ -106,12 +134,10 @@
         const userPointsRef = db.ref("users/" + user.uid + "/points");
         userPointsRef.set(newPoints)
           .then(() => {
-            console.log("Points updated to:", newPoints);
             alert("You earned 100 points!");
           })
           .catch(error => console.error("Error updating points:", error));
       } else {
-        console.error("No authenticated user");
         alert("You need to be logged in to earn points.");
       }
     }
@@ -119,15 +145,12 @@
     // Listen for changes to the user's points in Firebase
     auth.onAuthStateChanged((user) => {
       if (user) {
-        console.log("User authenticated:", user.uid);
         const userPointsRef = db.ref("users/" + user.uid + "/points");
         userPointsRef.on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
-          console.log("Current points:", currentPoints);
           document.getElementById("points").innerText = currentPoints;
         });
       } else {
-        console.log("User not authenticated, redirecting to login");
         window.location.href = "login.html";
       }
     });
