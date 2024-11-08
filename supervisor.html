@@ -115,24 +115,33 @@
       <div id="playersList"></div>
     </div>
 
-    <div class="card" id="productsCard">
-      <h2>Add Products</h2>
+    <div class="card" id="productsObjectivesCard">
+      <h2>Add Products & Objectives</h2>
+      <h3>Add Products</h3>
       <input type="text" id="productName" placeholder="Product Name">
       <input type="number" id="productPoints" placeholder="Points">
       <button onclick="addProduct()">Add Product</button>
-      <h2>Available Products</h2>
-      <div id="productList"></div>
-    </div>
-  </div>
 
-  <div class="dashboard">
-    <div class="card" id="objectivesCard">
-      <h2>Add Objectives</h2>
+      <h3>Add Objectives</h3>
       <input type="text" id="objectiveName" placeholder="Objective Name">
       <input type="number" id="objectivePoints" placeholder="Points">
       <button onclick="addObjective()">Add Objective</button>
+
+      <h2>Available Products</h2>
+      <div id="productList"></div>
       <h2>Available Objectives</h2>
       <div id="objectivesList"></div>
+    </div>
+
+    <div class="card" id="shortDatedProductsCard">
+      <h2>Add Short Dated Products</h2>
+      <input type="text" id="shortDatedDescription" placeholder="Product Description">
+      <input type="date" id="shortDatedDate" placeholder="Date">
+      <input type="number" id="shortDatedPrice" placeholder="Revised Price">
+      <input type="number" id="shortDatedPoints" placeholder="Points">
+      <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
+      <h2>Available Short Dated Products</h2>
+      <div id="shortDatedProductsList"></div>
     </div>
   </div>
 
@@ -345,10 +354,79 @@
         });
     }
 
-    // Call fetch functions to display initial data
+    // Add Short Dated Product
+    function addShortDatedProduct() {
+      const description = document.getElementById("shortDatedDescription").value;
+      const date = document.getElementById("shortDatedDate").value;
+      const price = document.getElementById("shortDatedPrice").value;
+      const points = document.getElementById("shortDatedPoints").value;
+
+      if (description && date && price && points) {
+        const shortDatedRef = db.ref("shortDatedProducts").push();
+        shortDatedRef.set({
+          description: description,
+          date: date,
+          price: parseFloat(price),
+          points: parseInt(points, 10)
+        })
+        .then(() => {
+          alert("Short dated product added successfully!");
+          document.getElementById("shortDatedDescription").value = "";
+          document.getElementById("shortDatedDate").value = "";
+          document.getElementById("shortDatedPrice").value = "";
+          document.getElementById("shortDatedPoints").value = "";
+          fetchShortDatedProducts(); // Refresh short dated products list
+        })
+        .catch((error) => {
+          console.error("Error adding short dated product:", error);
+          alert("Error adding short dated product. Please try again.");
+        });
+      } else {
+        alert("Please fill in all fields.");
+      }
+    }
+
+    // Fetch and display short dated products
+    function fetchShortDatedProducts() {
+      const shortDatedRef = db.ref("shortDatedProducts");
+      shortDatedRef.on("value", (snapshot) => {
+        const shortDatedList = document.getElementById("shortDatedProductsList");
+        shortDatedList.innerHTML = ""; // Clear previous short dated products
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          const productItem = document.createElement("div");
+          productItem.className = "card"; // Add card styling
+          productItem.innerHTML = `
+            <strong>${product.description}</strong> - ${product.price} (Points: ${product.points})<br>
+            Expiry Date: ${product.date}
+            <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
+          `;
+          shortDatedList.appendChild(productItem);
+        });
+      });
+    }
+
+    // Remove a short dated product
+    function removeShortDatedProduct(productId) {
+      const shortDatedRef = db.ref("shortDatedProducts/" + productId);
+      shortDatedRef.remove()
+        .then(() => {
+          alert("Short dated product removed successfully!");
+          fetchShortDatedProducts(); // Refresh short dated products list
+        })
+        .catch((error) => {
+          console.error("Error removing short dated product:", error);
+          alert("Error removing short dated product. Please try again.");
+        });
+    }
+
+    // Initial data fetch
     fetchPlayers();
     fetchProducts();
     fetchObjectives();
+    fetchShortDatedProducts();
   </script>
 </body>
 </html>
