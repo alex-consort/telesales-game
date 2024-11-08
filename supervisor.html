@@ -127,144 +127,180 @@
       <input type="number" id="objectivePoints" placeholder="Points">
       <button onclick="addObjective()">Add Objective</button>
     </div>
+  </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
-        authDomain: "telesalesgame-a09f2.firebaseapp.com",
-        databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "telesalesgame-a09f2",
-        storageBucket: "telesalesgame-a09f2.firebasestorage.app",
-        messagingSenderId: "1097332097301",
-        appId: "1:1097332097301:web:51b0151499e33f7851291c",
-        measurementId: "G-7LNG5176PW"
-      };
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
+    };
 
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.database();
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-      // Function to add a new product
-      function addProduct() {
-        const name = document.getElementById("productName").value;
-        const points = parseInt(document.getElementById("productPoints").value, 10);
+    // Function to add a new product
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
 
-        if (!name || isNaN(points)) {
-          alert("Please enter a valid product name and points.");
-          return;
-        }
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid product name and points.");
+        return;
+      }
 
-        db.ref("products").push({ name, points })
+      db.ref("products").push({ name, points })
+        .then(() => {
+          alert("Product added successfully!");
+          document.getElementById("productName").value = "";
+          document.getElementById("productPoints").value = "";
+          fetchProducts(); // Refresh products after adding
+        })
+        .catch((error) => {
+          console.error("Error adding product:", error);
+          alert("Error adding product. Please try again.");
+        });
+    }
+
+    // Function to add a new objective
+    function addObjective() {
+      const name = document.getElementById("objectiveName").value;
+      const points = parseInt(document.getElementById("objectivePoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid objective name and points.");
+        return;
+      }
+
+      db.ref("objectives").push({ name, points })
+        .then(() => {
+          alert("Objective added successfully!");
+          document.getElementById("objectiveName").value = "";
+          document.getElementById("objectivePoints").value = "";
+          fetchObjectives(); // Refresh objectives after adding
+        })
+        .catch((error) => {
+          console.error("Error adding objective:", error);
+          alert("Error adding objective. Please try again.");
+        });
+    }
+
+    // Function to adjust points for a player
+    function adjustPoints(playerId) {
+      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
+      const change = parseInt(pointsInput.value, 10) || 0;
+
+      db.ref("users/" + playerId).once("value").then((snapshot) => {
+        const currentPoints = snapshot.val().points || 0;
+        const newPoints = currentPoints + change;
+
+        db.ref("users/" + playerId).update({ points: newPoints })
           .then(() => {
-            alert("Product added successfully!");
-            document.getElementById("productName").value = "";
-            document.getElementById("productPoints").value = "";
+            alert("Points adjusted successfully!");
+            fetchPlayers(); // Refresh players after adjusting points
           })
           .catch((error) => {
-            console.error("Error adding product:", error);
-            alert("Error adding product. Please try again.");
+            console.error("Error adjusting points:", error);
+            alert("Error adjusting points. Please try again.");
           });
-      }
+      });
+    }
 
-      // Function to add a new objective
-      function addObjective() {
-        const name = document.getElementById("objectiveName").value;
-        const points = parseInt(document.getElementById("objectivePoints").value, 10);
+    // Fetch functions to load data into the dashboard
+    function fetchPlayers() {
+      const playersRef = db.ref("users");
+      playersRef.on("value", (snapshot) => {
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = "";
 
-        if (!name || isNaN(points)) {
-          alert("Please enter a valid objective name and points.");
-          return;
-        }
-
-        db.ref("objectives").push({ name, points })
-          .then(() => {
-            alert("Objective added successfully!");
-            document.getElementById("objectiveName").value = "";
-            document.getElementById("objectivePoints").value = "";
-          })
-          .catch((error) => {
-            console.error("Error adding objective:", error);
-            alert("Error adding objective. Please try again.");
-          });
-      }
-
-      // Function to adjust points for a player
-      function adjustPoints(playerId) {
-        const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
-        const change = parseInt(pointsInput.value, 10) || 0;
-
-        db.ref("users/" + playerId).once("value").then((snapshot) => {
-          const currentPoints = snapshot.val().points || 0;
-          const newPoints = currentPoints + change;
-
-          db.ref("users/" + playerId).update({ points: newPoints })
-            .then(() => {
-              alert("Points adjusted successfully!");
-            })
-            .catch((error) => {
-              console.error("Error adjusting points:", error);
-              alert("Error adjusting points. Please try again.");
-            });
+        snapshot.forEach((childSnapshot) => {
+          const playerData = childSnapshot.val();
+          const playerId = childSnapshot.key;
+          playersList.innerHTML += `
+            <div class="card">
+              <strong>${playerData.firstName} ${playerData.lastName}</strong>
+              <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
+              <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
+              <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
+            </div>`;
         });
-      }
+      });
+    }
 
-      // Function to fetch players
-      function fetchPlayers() {
-        const playersRef = db.ref("users");
-        playersRef.on("value", (snapshot) => {
-          const playersList = document.getElementById("playersList");
-          playersList.innerHTML = "";
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
 
-          snapshot.forEach((childSnapshot) => {
-            const playerData = childSnapshot.val();
-            const playerId = childSnapshot.key;
-            playersList.innerHTML += `
-              <div class="card">
-                <strong>${playerData.firstName} ${playerData.lastName}</strong>
-                <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
-                <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
-                <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
-              </div>`;
-          });
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div class="card">
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
         });
-      }
+      });
+    }
 
-      // Function to fetch products
-      function fetchProducts() {
-        const productsRef = db.ref("products");
-        productsRef.on("value", (snapshot) => {
-          const productList = document.getElementById("productList");
-          productList.innerHTML = "";
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectivesList = document.getElementById("objectivesList");
+        objectivesList.innerHTML = "";
 
-          snapshot.forEach((childSnapshot) => {
-            const product = childSnapshot.val();
-            productList.innerHTML += `<div>${product.name} - ${product.points} Points</div>`;
-          });
+        snapshot.forEach((childSnapshot) => {
+          const objective = childSnapshot.val();
+          const objectiveId = childSnapshot.key;
+          objectivesList.innerHTML += `
+            <div class="card">
+              <strong>${objective.name}</strong> - ${objective.points} Points
+              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+            </div>`;
         });
-      }
+      });
+    }
 
-      // Function to fetch objectives
-      function fetchObjectives() {
-        const objectivesRef = db.ref("objectives");
-        objectivesRef.on("value", (snapshot) => {
-          const objectivesList = document.getElementById("objectivesList");
-          objectivesList.innerHTML = "";
-
-          snapshot.forEach((childSnapshot) => {
-            const objective = childSnapshot.val();
-            objectivesList.innerHTML += `<div>${objective.name} - ${objective.points} Points</div>`;
-          });
+    function removeProduct(productId) {
+      db.ref("products/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts();
+        })
+        .catch((error) => {
+          console.error("Error removing product:", error);
+          alert("Error removing product. Please try again.");
         });
-      }
+    }
 
-      // Initial data fetch
-      fetchPlayers();
-      fetchProducts();
-      fetchObjectives();
-    </script>
+    function removeObjective(objectiveId) {
+      db.ref("objectives/" + objectiveId).remove()
+        .then(() => {
+          alert("Objective removed successfully!");
+          fetchObjectives();
+        })
+        .catch((error) => {
+          console.error("Error removing objective:", error);
+          alert("Error removing objective. Please try again.");
+        });
+    }
+
+    // Initial fetch calls
+    fetchPlayers();
+    fetchProducts();
+    fetchObjectives();
+  </script>
 </body>
 </html>
