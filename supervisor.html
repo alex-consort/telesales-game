@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supervisor Page - Telesales Game</title>
+  <title>Supervisor Dashboard - Telesales Game</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
     /* General Styles */
@@ -15,23 +15,7 @@
       margin: 0;
       padding: 0;
     }
-    .header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background-color: #617B8F;
-    }
-    .logo {
-      height: 50px;
-      margin-right: 20px;
-    }
-    .game-title {
-      color: #FFFFFF;
-      font-size: 1.8em;
-      font-weight: bold;
-    }
-    /* Navbar Styles */
+    /* Title Bar Styles */
     .navbar {
       background-color: #617B8F;
       padding: 10px;
@@ -52,77 +36,92 @@
     .navbar a:hover {
       background-color: #FF4E59;
     }
-    /* Form and Product List */
-    .form-container {
-      max-width: 400px;
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: #617B8F;
+    }
+    .logo {
+      height: 50px;
+      margin-right: 20px;
+    }
+    .dashboard-container {
+      max-width: 800px;
       margin: 20px auto;
       padding: 20px;
       background-color: #ffffff;
       border-radius: 8px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     }
-    input, button {
-      width: 100%;
+    /* Player List and Objectives */
+    .player-list, .objectives-list {
+      margin: 20px 0;
+      text-align: left;
+    }
+    .player-item, .objective-item {
+      display: flex;
+      justify-content: space-between;
       padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #97CFF3;
+      border: 1px solid #ddd;
       border-radius: 5px;
-      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .player-item input, .objective-item input {
+      width: 70px;
+      margin-left: 10px;
     }
     button {
-      background-color: #274358;
+      padding: 10px;
       color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
       cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
       transition: background 0.3s;
     }
     button:hover {
       background-color: #FF4E59;
     }
-    /* Product List */
-    .product-list {
-      margin: 20px auto;
-      max-width: 600px;
-      padding: 20px;
-      background-color: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      text-align: left;
-    }
-    .product-item {
-      padding: 10px;
-      border-bottom: 1px solid #ddd;
-    }
   </style>
 </head>
 <body>
-  <header class="header">
-    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
-    <h1 class="game-title">Telesales Game Supervisor</h1>
-  </header>
 
-  <nav class="navbar">
+  <div class="navbar">
     <a href="profile.html">Profile</a>
-    <a href="dashboard.html">Dashboard</a>
     <a href="game.html">Play Game</a>
     <a href="achievements.html">Achievements</a>
     <a href="settings.html">Settings</a>
+    <a href="supervisor.html">Supervisor</a>
     <a href="logout.html">Log Out</a>
-  </nav>
-
-  <div class="form-container">
-    <h2>Add Product</h2>
-    <input type="text" id="productName" placeholder="Product Name" required>
-    <input type="number" id="productPoints" placeholder="Points Worth" required>
-    <button onclick="addProduct()">Add Product</button>
   </div>
 
-  <div class="product-list">
-    <h2>Current Products</h2>
-    <div id="productsContainer">
-      <!-- Products will be populated here -->
+  <header class="header">
+    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
+    <h1 class="game-title">Supervisor Dashboard</h1>
+  </header>
+
+  <div class="dashboard-container">
+    <h2>Player List</h2>
+    <div class="player-list" id="playerList">
+      <!-- Player data will be populated here -->
+    </div>
+
+    <h2>Add Objectives</h2>
+    <input type="text" id="objectiveName" placeholder="Objective Name">
+    <input type="number" id="objectivePoints" placeholder="Points" min="1">
+    <button onclick="addObjective()">Add Objective</button>
+
+    <h2>Objectives List</h2>
+    <div class="objectives-list" id="objectivesList">
+      <!-- Objectives will be populated here -->
     </div>
   </div>
 
+  <!-- Load Firebase SDKs from CDN -->
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -143,69 +142,94 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const auth = firebase.auth();
 
-    // Function to add a product
-    function addProduct() {
-      const productName = document.getElementById("productName").value;
-      const productPoints = document.getElementById("productPoints").value;
+    // Fetch and display players
+    function fetchPlayers() {
+      const usersRef = db.ref("users");
+      usersRef.on("value", (snapshot) => {
+        const players = snapshot.val();
+        const playerList = document.getElementById("playerList");
+        playerList.innerHTML = ""; // Clear previous players
 
-      if (productName && productPoints) {
-        const productsRef = db.ref("products");
-        const newProductRef = productsRef.push();
-        
-        newProductRef.set({
-          name: productName,
-          points: Number(productPoints)
-        })
-        .then(() => {
-          alert("Product added successfully!");
-          document.getElementById("productName").value = "";
-          document.getElementById("productPoints").value = "";
-          fetchProducts();  // Refresh the product list
-        })
-        .catch((error) => {
-          console.error("Error adding product:", error);
-          alert("Failed to add product. " + error.message);
-        });
-      } else {
-        alert("Please fill in all fields.");
-      }
-    }
-
-    // Function to fetch and display products
-    function fetchProducts() {
-      const productsRef = db.ref("products");
-      productsRef.on("value", (snapshot) => {
-        const products = snapshot.val();
-        const productsContainer = document.getElementById("productsContainer");
-        productsContainer.innerHTML = "";  // Clear previous entries
-
-        for (const key in products) {
-          const product = products[key];
-          const productItem = document.createElement("div");
-          productItem.className = "product-item";
-          productItem.innerText = `${product.name}: ${product.points} Points`;
-          productsContainer.appendChild(productItem);
+        for (const userId in players) {
+          const player = players[userId];
+          const playerItem = document.createElement("div");
+          playerItem.className = "player-item";
+          playerItem.innerHTML = `
+            ${player.firstName} (${userId}) - Points: <span id="points_${userId}">${player.points || 0}</span>
+            <input type="number" id="newPoints_${userId}" placeholder="New Points" min="0">
+            <button onclick="updatePoints('${userId}')">Update Points</button>
+          `;
+          playerList.appendChild(playerItem);
         }
       });
     }
 
-    // Fetch products on page load
-    window.onload = fetchProducts;
+    // Update player points
+    function updatePoints(userId) {
+      const newPoints = document.getElementById(`newPoints_${userId}`).value;
+      if (newPoints) {
+        db.ref(`users/${userId}/points`).set(parseInt(newPoints, 10))
+          .then(() => {
+            alert("Points updated successfully!");
+            document.getElementById(`points_${userId}`).innerText = newPoints; // Update displayed points
+          })
+          .catch((error) => {
+            console.error("Error updating points:", error);
+            alert("Error updating points. Please try again.");
+          });
+      } else {
+        alert("Please enter a valid number of points.");
+      }
+    }
 
-    // Optional: Log out function if needed
-    function logOut() {
-      auth.signOut()
+    // Add new objective
+    function addObjective() {
+      const objectiveName = document.getElementById("objectiveName").value;
+      const objectivePoints = document.getElementById("objectivePoints").value;
+
+      if (objectiveName && objectivePoints) {
+        const objectivesRef = db.ref("objectives").push(); // Generate a new key
+        objectivesRef.set({
+          name: objectiveName,
+          points: parseInt(objectivePoints, 10)
+        })
         .then(() => {
-          alert("Logged out successfully!");
-          window.location.href = "login.html";
+          alert("Objective added successfully!");
+          document.getElementById("objectiveName").value = ""; // Clear input
+          document.getElementById("objectivePoints").value = ""; // Clear input
+          fetchObjectives(); // Refresh objectives list
         })
         .catch((error) => {
-          console.error("Log Out Error:", error);
-          alert("Error: " + error.message);
+          console.error("Error adding objective:", error);
+          alert("Error adding objective. Please try again.");
         });
+      } else {
+        alert("Please enter objective name and points.");
+      }
     }
+
+    // Fetch and display objectives
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectives = snapshot.val();
+        const objectivesList = document.getElementById("objectivesList");
+        objectivesList.innerHTML = ""; // Clear previous objectives
+
+        for (const objectiveId in objectives) {
+          const objective = objectives[objectiveId];
+          const objectiveItem = document.createElement("div");
+          objectiveItem.className = "objective-item";
+          objectiveItem.innerHTML = `${objective.name} - ${objective.points} Points`;
+          objectivesList.appendChild(objectiveItem);
+        }
+      });
+    }
+
+    // Initial fetch
+    fetchPlayers();
+    fetchObjectives();
   </script>
 </body>
 </html>
