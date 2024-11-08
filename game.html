@@ -76,6 +76,7 @@
       font-weight: bold;
       font-size: 1.2em;
       transition: background 0.3s;
+      margin-bottom: 20px;
     }
     .task-button:hover {
       background-color: #FF4E59;
@@ -116,19 +117,6 @@
     .product-button:hover {
       background-color: #FF4E59;
     }
-    /* Leaderboard Section */
-    .leaderboard-container {
-      margin-top: 20px;
-      text-align: left;
-    }
-    .leaderboard {
-      list-style: none;
-      padding: 0;
-    }
-    .leaderboard li {
-      padding: 10px;
-      border-bottom: 1px solid #97CFF3;
-    }
   </style>
 </head>
 <body>
@@ -148,7 +136,7 @@
   </header>
 
   <div class="game-container">
-    <h2>Complete Tasks to Earn Points!</h2>
+    <h2>Earn Points by Completing Tasks!</h2>
     <p class="points-display">Current Points: <span id="points">0</span></p>
     <button class="task-button" onclick="earnPoints()">Complete Task (+100 Points)</button>
 
@@ -156,14 +144,6 @@
     <div class="product-list" id="productList">
       <!-- Product cards will be populated here -->
     </div>
-  </div>
-
-  <!-- Leaderboard Section -->
-  <div class="leaderboard-container">
-    <h2>Leaderboard</h2>
-    <ul class="leaderboard" id="leaderboard">
-      <!-- Leaderboard items will be populated here -->
-    </ul>
   </div>
 
   <!-- Load Firebase SDKs from CDN -->
@@ -201,7 +181,6 @@
         userPointsRef.set(newPoints)
           .then(() => {
             alert("You earned 100 points!");
-            updateLeaderboard(); // Update leaderboard after earning points
           })
           .catch(error => console.error("Error updating points:", error));
       } else {
@@ -220,7 +199,6 @@
 
         // Fetch products available in the game
         fetchProducts();
-        updateLeaderboard(); // Initial leaderboard fetch
       } else {
         window.location.href = "login.html";
       }
@@ -253,31 +231,6 @@
       currentPoints += points;
       document.getElementById("points").innerText = currentPoints;
       earnPoints(); // Call earnPoints to update in database
-    }
-
-    // Function to update the leaderboard
-    function updateLeaderboard() {
-      const leaderboardRef = db.ref("users");
-      leaderboardRef.on("value", (snapshot) => {
-        const leaderboard = [];
-        snapshot.forEach((childSnapshot) => {
-          const childData = childSnapshot.val();
-          if (childData.points !== undefined) {
-            leaderboard.push({ name: childData.firstName || childSnapshot.key, points: childData.points });
-          }
-        });
-        
-        // Sort leaderboard by points in descending order
-        leaderboard.sort((a, b) => b.points - a.points);
-
-        const leaderboardList = document.getElementById("leaderboard");
-        leaderboardList.innerHTML = ""; // Clear previous leaderboard
-        leaderboard.forEach(user => {
-          const leaderboardItem = document.createElement("li");
-          leaderboardItem.innerText = `${user.name}: ${user.points} Points`;
-          leaderboardList.appendChild(leaderboardItem);
-        });
-      });
     }
   </script>
 </body>
