@@ -163,6 +163,7 @@ const firebaseConfig = {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Fetch players
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
@@ -210,55 +211,74 @@ const firebaseConfig = {
       });
     }
 
-    // Function to add new product
-    function addProduct() {
-      const name = document.getElementById("productName").value;
-      const points = parseInt(document.getElementById("productPoints").value, 10);
-      if (name && points) {
-        db.ref("products").push({ name, points }).then(() => {
-          alert("Product added successfully!");
-          document.getElementById("productName").value = "";
-          document.getElementById("productPoints").value = "";
-        });
-      } else {
-        alert("Please enter a product name and points.");
-      }
+    // Fetch products
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = ""; 
+
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const product = childSnapshot.val();
+            productList.innerHTML += `
+              <div class="card">
+                <strong>${product.name}</strong> - ${product.points} Points
+              </div>`;
+          });
+        } else {
+          productList.innerHTML = "<p>No products found.</p>";
+        }
+      });
     }
 
-    // Function to add new objective
-    function addObjective() {
-      const name = document.getElementById("objectiveName").value;
-      const points = parseInt(document.getElementById("objectivePoints").value, 10);
-      if (name && points) {
-        db.ref("objectives").push({ name, points }).then(() => {
-          alert("Objective added successfully!");
-          document.getElementById("objectiveName").value = "";
-          document.getElementById("objectivePoints").value = "";
-        });
-      } else {
-        alert("Please enter an objective name and points.");
-      }
+    // Fetch objectives
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectivesList = document.getElementById("objectivesList");
+        objectivesList.innerHTML = ""; 
+
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const objective = childSnapshot.val();
+            objectivesList.innerHTML += `
+              <div class="card">
+                <strong>${objective.name}</strong> - ${objective.points} Points
+              </div>`;
+          });
+        } else {
+          objectivesList.innerHTML = "<p>No objectives found.</p>";
+        }
+      });
     }
 
-    // Function to add new short-dated product
-    function addShortDatedProduct() {
-      const description = document.getElementById("shortDatedDescription").value;
-      const date = document.getElementById("shortDatedDate").value;
-      const price = parseFloat(document.getElementById("shortDatedPrice").value);
-      const points = parseInt(document.getElementById("shortDatedPoints").value, 10);
-      if (description && date && price && points) {
-        db.ref("shortDatedProducts").push({ description, date, price, points }).then(() => {
-          alert("Short-dated product added successfully!");
-          document.getElementById("shortDatedDescription").value = "";
-          document.getElementById("shortDatedDate").value = "";
-          document.getElementById("shortDatedPrice").value = "";
-          document.getElementById("shortDatedPoints").value = "";
-        });
-      } else {
-        alert("Please fill in all fields for the short-dated product.");
-      }
+    // Fetch short-dated products
+    function fetchShortDatedProducts() {
+      const shortDatedRef = db.ref("shortDatedProducts");
+      shortDatedRef.on("value", (snapshot) => {
+        const shortDatedList = document.getElementById("shortDatedProductsList");
+        shortDatedList.innerHTML = ""; 
+
+        if (snapshot.exists()) {
+          snapshot.forEach((childSnapshot) => {
+            const product = childSnapshot.val();
+            const formattedDate = new Date(product.date).toLocaleDateString('en-GB');
+            const formattedPrice = `£${parseFloat(product.price).toFixed(2)}`;
+            shortDatedList.innerHTML += `
+              <div class="card">
+                <strong>${product.description}</strong><br>
+                <span class="price">${formattedPrice}</span> (Points: ${product.points})<br>
+                Expiry Date: ${formattedDate}
+              </div>`;
+          });
+        } else {
+          shortDatedList.innerHTML = "<p>No short-dated products found.</p>";
+        }
+      });
     }
 
+    // Call fetch functions on page load
     fetchPlayers();
     fetchProducts();
     fetchObjectives();
