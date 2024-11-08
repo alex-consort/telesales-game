@@ -55,12 +55,12 @@
       border-radius: 8px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     }
-    /* Player List and Objectives */
-    .player-list, .objectives-list {
+    /* Player List, Products, and Objectives */
+    .player-list, .product-list, .objectives-list {
       margin: 20px 0;
       text-align: left;
     }
-    .player-item, .objective-item {
+    .player-item, .product-item, .objective-item {
       display: flex;
       justify-content: space-between;
       padding: 10px;
@@ -68,7 +68,7 @@
       border-radius: 5px;
       margin-bottom: 10px;
     }
-    .player-item input, .objective-item input {
+    .player-item input, .product-item input, .objective-item input {
       width: 70px;
       margin-left: 10px;
     }
@@ -85,6 +85,9 @@
     }
     button:hover {
       background-color: #FF4E59;
+    }
+    .form-group {
+      margin: 20px 0;
     }
   </style>
 </head>
@@ -110,12 +113,22 @@
       <!-- Player data will be populated here -->
     </div>
 
-    <h2>Add Objectives</h2>
-    <input type="text" id="objectiveName" placeholder="Objective Name">
-    <input type="number" id="objectivePoints" placeholder="Points" min="1">
-    <button onclick="addObjective()">Add Objective</button>
+    <h2>Add Products</h2>
+    <div class="form-group">
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="number" id="productPoints" placeholder="Points" min="1">
+      <button onclick="addProduct()">Add Product</button>
+    </div>
+    <div class="product-list" id="productList">
+      <!-- Product data will be populated here -->
+    </div>
 
-    <h2>Objectives List</h2>
+    <h2>Add Objectives</h2>
+    <div class="form-group">
+      <input type="text" id="objectiveName" placeholder="Objective Name">
+      <input type="number" id="objectivePoints" placeholder="Points" min="1">
+      <button onclick="addObjective()">Add Objective</button>
+    </div>
     <div class="objectives-list" id="objectivesList">
       <!-- Objectives will be populated here -->
     </div>
@@ -183,6 +196,52 @@
       }
     }
 
+    // Add new product
+    function addProduct() {
+      const productName = document.getElementById("productName").value;
+      const productPoints = document.getElementById("productPoints").value;
+
+      if (productName && productPoints) {
+        const productsRef = db.ref("products").push(); // Generate a new key
+        productsRef.set({
+          name: productName,
+          points: parseInt(productPoints, 10)
+        })
+        .then(() => {
+          alert("Product added successfully!");
+          document.getElementById("productName").value = ""; // Clear input
+          document.getElementById("productPoints").value = ""; // Clear input
+          fetchProducts(); // Refresh products list
+        })
+        .catch((error) => {
+          console.error("Error adding product:", error);
+          alert("Error adding product. Please try again.");
+        });
+      } else {
+        alert("Please enter product name and points.");
+      }
+    }
+
+    // Fetch and display products
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const products = snapshot.val();
+        const productList = document.getElementById("productList");
+        productList.innerHTML = ""; // Clear previous products
+
+        for (const productId in products) {
+          const product = products[productId];
+          const productItem = document.createElement("div");
+          productItem.className = "product-item";
+          productItem.innerHTML = `
+            <div>${product.name} - <strong>${product.points} Points</strong></div>
+          `;
+          productList.appendChild(productItem);
+        }
+      });
+    }
+
     // Add new objective
     function addObjective() {
       const objectiveName = document.getElementById("objectiveName").value;
@@ -221,7 +280,9 @@
           const objective = objectives[objectiveId];
           const objectiveItem = document.createElement("div");
           objectiveItem.className = "objective-item";
-          objectiveItem.innerHTML = `${objective.name} - ${objective.points} Points`;
+          objectiveItem.innerHTML = `
+            <div>${objective.name} - <strong>${objective.points} Points</strong></div>
+          `;
           objectivesList.appendChild(objectiveItem);
         }
       });
@@ -229,6 +290,7 @@
 
     // Initial fetch
     fetchPlayers();
+    fetchProducts();
     fetchObjectives();
   </script>
 </body>
