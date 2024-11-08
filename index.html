@@ -3,23 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Telesales Game</title>
-  <link rel="stylesheet" href="style.css"> <!-- Link to CSS file -->
+  <title>Telesales Game - Home</title>
+  <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Calibri', sans-serif;
+      background-color: #f4f6f9;
+      color: #274358;
+      text-align: center;
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: #617B8F;
+    }
+    .logo {
+      height: 50px;
+      margin-right: 20px;
+    }
+    .game-title {
+      color: #FFFFFF;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+    /* Leaderboard and Navigation */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .leaderboard {
+      margin-top: 20px;
+    }
+    .leaderboard h2 {
+      color: #617B8F;
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+    .leaderboard-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-bottom: 1px solid #97CFF3;
+    }
+    .nav-button {
+      padding: 10px 20px;
+      margin: 10px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .nav-button:hover {
+      background-color: #FF4E59;
+    }
+  </style>
 </head>
 <body>
+  <header class="header">
+    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
+    <h1 class="game-title">Telesales Game - Home</h1>
+  </header>
+
   <div class="container">
-    <h1>Telesales Game</h1>
-    <p>Welcome to the Telesales Game! Complete missions and earn points.</p>
-    <p>Current Points: <span id="points">0</span></p>
-    <button onclick="addPoints()">Complete Task (+100 Points)</button>
+    <h2>Welcome to the Telesales Game!</h2>
+    <p>Earn points, climb the leaderboard, and enjoy the journey!</p>
+
+    <!-- Navigation Buttons -->
+    <button class="nav-button" onclick="window.location.href='login.html'">Login</button>
+    <button class="nav-button" onclick="window.location.href='profile.html'">Profile</button>
+    <button class="nav-button" onclick="window.location.href='game.html'">Game</button>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard">
+      <h2>Leaderboard</h2>
+      <div id="leaderboard-list"></div>
+    </div>
   </div>
 
-  <!-- Firebase Compatibility Libraries -->
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-analytics.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-  <script>
-    // Firebase configuration object
+    // Your web app's Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
@@ -32,25 +110,37 @@
     };
 
     // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
 
-    // Track and display points in real time
-    const pointsRef = db.ref('game/points');
-    pointsRef.on('value', (snapshot) => {
-      const points = snapshot.val();
-      console.log("Points loaded from Firebase:", points); // Log the points loaded from Firebase
-      document.getElementById("points").innerText = points || 0;
-    });
+    // Function to Load Leaderboard
+    function loadLeaderboard() {
+      const leaderboardRef = ref(db, "users");
+      onValue(leaderboardRef, (snapshot) => {
+        const leaderboardList = document.getElementById("leaderboard-list");
+        leaderboardList.innerHTML = ""; // Clear previous leaderboard
 
-    // Function to add points to Firebase
-    function addPoints() {
-      const currentPoints = parseInt(document.getElementById("points").innerText) || 0;
-      pointsRef.set(currentPoints + 100)
-        .then(() => console.log("Points updated in Firebase:", currentPoints + 100)) // Log successful update
-        .catch(error => console.error("Error updating points in Firebase:", error)); // Log errors, if any
-      alert("You earned 100 points!");
+        // Get data and sort in descending order
+        const users = [];
+        snapshot.forEach((childSnapshot) => {
+          const userData = childSnapshot.val();
+          users.push({ name: userData.name || "Player", points: userData.points || 0 });
+        });
+        users.sort((a, b) => b.points - a.points); // Sort by points in descending order
+
+        // Display the top 5 players
+        users.slice(0, 5).forEach((user, index) => {
+          const item = document.createElement("div");
+          item.className = "leaderboard-item";
+          item.innerHTML = `<span>${index + 1}. ${user.name}</span><span>${user.points} Points</span>`;
+          leaderboardList.appendChild(item);
+        });
+      });
     }
+
+    // Load the leaderboard when the page loads
+    loadLeaderboard();
   </script>
 </body>
 </html>
