@@ -138,7 +138,7 @@
   <div class="game-container">
     <h2>Earn Points by Completing Tasks!</h2>
     <p class="points-display">Current Points: <span id="points">0</span></p>
-    <button class="task-button" onclick="earnPoints()">Complete Task (+100 Points)</button>
+    <button class="task-button" onclick="earnBasePoints()">Complete Task (+100 Points)</button>
 
     <h3>Available Products</h3>
     <div class="product-list" id="productList">
@@ -171,16 +171,17 @@
 
     let currentPoints = 0;
 
-    // Function to update points in Firebase
-    function earnPoints() {
-      const newPoints = currentPoints + 100;
+    // Function to update base points in Firebase
+    function earnBasePoints() {
+      currentPoints += 100; // Increment base points
       const user = auth.currentUser;
 
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
-        userPointsRef.set(newPoints)
+        userPointsRef.set(currentPoints)
           .then(() => {
-            alert("You earned 100 points!");
+            alert("You earned 100 points from completing a task!");
+            document.getElementById("points").innerText = currentPoints;
           })
           .catch(error => console.error("Error updating points:", error));
       } else {
@@ -226,19 +227,22 @@
       });
     }
 
-    // Function to earn points from product
+    // Function to earn points from a product
     function earnPointsFromProduct(points) {
-      currentPoints += points;
-      document.getElementById("points").innerText = currentPoints;
       const user = auth.currentUser;
 
       if (user) {
+        currentPoints += points; // Add product points
+        document.getElementById("points").innerText = currentPoints;
+
         const userPointsRef = db.ref("users/" + user.uid + "/points");
         userPointsRef.set(currentPoints) // Update total points
           .then(() => {
             alert(`You earned ${points} points from the product!`);
           })
           .catch(error => console.error("Error updating points:", error));
+      } else {
+        alert("You need to be logged in to earn points.");
       }
     }
   </script>
