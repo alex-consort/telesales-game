@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Consort Telesales Gamification</title>
+  <title>Telesales Game Dashboard</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
     /* Branding Colours */
@@ -18,40 +18,37 @@
     }
 
     /* Page Layout and Style */
-    body { font-family: Calibri, sans-serif; background-color: #f4f6f9; color: var(--text-dark); margin: 0; padding: 0; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 20px; text-align: center; }
-    h1 { color: var(--blue); font-size: 2.5em; }
-    .logo { margin-top: 20px; width: 200px; }
-    .dashboard { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-
-    /* Cards */
-    .card { flex: 1 1 300px; background-color: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 20px; max-width: 350px; position: relative; }
-    .card h2 { color: var(--blue-grey); font-size: 1.5em; }
-    
-    /* Profile and Points Display */
-    .profile { display: flex; align-items: center; gap: 10px; }
-    .profile img { width: 50px; height: 50px; border-radius: 50%; }
-    .points { font-size: 2em; color: var(--rose); }
-    .progress-bar { background-color: var(--aqua); border-radius: 8px; height: 24px; width: 100%; margin-top: 10px; position: relative; }
-    .progress { background-color: var(--rose); height: 100%; border-radius: 8px; transition: width 0.5s ease; }
-
-    /* Notifications */
-    .notification { position: fixed; bottom: 20px; right: 20px; background: var(--rose); color: white; padding: 15px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); display: none; }
-    
-    /* Leaderboard */
-    .leaderboard ul { list-style: none; padding: 0; }
-    .leaderboard li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; }
-
-    /* Badges */
-    .badge { display: inline-block; margin: 5px; padding: 8px 12px; background-color: var(--light-blue); color: white; border-radius: 5px; }
-    
-    /* Title Bar Styles */
+    body {
+      font-family: Calibri, sans-serif;
+      background-color: #f4f6f9;
+      color: var(--text-dark);
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: var(--blue);
+      font-size: 2.5em;
+    }
+    .logo {
+      margin-top: 20px;
+      width: 200px;
+    }
+    /* Navbar Styles */
     .navbar {
-      background-color: var(--blue-grey);
+      background-color: #617B8F;
       padding: 10px;
       display: flex;
       justify-content: center;
       gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     .navbar a {
       color: white;
@@ -61,155 +58,138 @@
       transition: background 0.3s;
     }
     .navbar a:hover {
-      background-color: var(--rose);
+      background-color: #FF4E59;
+    }
+    /* Cards */
+    .card {
+      flex: 1 1 300px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin: 20px auto;
+    }
+    /* Leaderboard */
+    .leaderboard ul {
+      list-style: none;
+      padding: 0;
+    }
+    .leaderboard li {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #ddd;
     }
   </style>
 </head>
 <body>
 
-<div class="navbar">
-  <a href="profile.html">Profile</a>
-  <a href="game.html">Play Game</a>
-  <a href="achievements.html">Achievements</a>
-  <a href="settings.html">Settings</a>
-  <a href="logout.html">Log Out</a>
-</div>
+  <div class="navbar">
+    <a href="profile.html">Profile</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="game.html">Play Game</a>
+    <a href="achievements.html">Achievements</a>
+    <a href="settings.html">Settings</a>
+    <a href="logout.html">Log Out</a>
+  </div>
 
-<div class="container">
-  <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
-  <h1>Consort Telesales Gamification Dashboard</h1>
+  <div class="container">
+    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
+    <h1>Consort Telesales Gamification Dashboard</h1>
 
-  <!-- Points and Progress -->
-  <div class="dashboard">
+    <!-- User Personal Information -->
     <div class="card">
-      <div class="profile">
-        <img src="https://i.pravatar.cc/100?img=3" alt="Profile Picture">
-        <div>
-          <h2>Agent Profile</h2>
-          <p>Level: <span id="level">1</span></p>
-        </div>
-      </div>
-      <p>Current Points: <span class="points" id="points">0</span></p>
-      <button class="button" onclick="completeTask()">Complete Task (+100 Points)</button>
-      <div class="progress-bar">
-        <div class="progress" id="progress" style="width: 10%"></div>
-      </div>
-    </div>
-
-    <!-- Weekly Missions -->
-    <div class="missions card">
-      <h2>Weekly Missions</h2>
-      <ul id="missions-list">
-        <li>Sales Mission: Close 15 sales (Completed: <span id="sales-progress">0</span>/15)</li>
-        <li>Skill Mission: Complete objection handling training (<span id="training-completed">No</span>)</li>
-        <li>Customer Mission: 90% customer satisfaction (Current: <span id="csat">85</span>%)</li>
-      </ul>
-      <button class="button" onclick="completeMission('sales')">Complete Sale</button>
-      <button class="button" onclick="completeMission('training')">Complete Training</button>
+      <h2>User Information</h2>
+      <p>Name: <span id="userName">User Name</span></p>
+      <p>Current Points: <span id="userPoints">0</span></p>
+      <p>Depot: <span id="userDepot">Depot Name</span></p>
     </div>
 
     <!-- Leaderboard -->
-    <div class="leaderboard card">
+    <div class="card leaderboard">
       <h2>Leaderboard</h2>
       <ul id="leaderboard">
-        <li data-name="Agent A" data-points="1500"><span>Agent A</span><span>1500 Points</span></li>
-        <li data-name="Agent B" data-points="1350"><span>Agent B</span><span>1350 Points</span></li>
-        <li data-name="Agent C" data-points="1250"><span>Agent C</span><span>1250 Points</span></li>
-        <li data-name="You" data-points="0" id="user-ranking"><span>You</span><span id="user-points">0 Points</span></li>
+        <!-- Leaderboard entries will be populated here -->
       </ul>
     </div>
-
-    <!-- Badges Earned -->
-    <div class="badges card">
-      <h2>Badges Earned</h2>
-      <div id="badges">
-        <!-- Badges will be added here dynamically -->
-      </div>
-    </div>
   </div>
-</div>
 
-<!-- Notification Popup -->
-<div id="notification" class="notification"></div>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
-<script>
-  let points = 0;
-  let level = 1;
-  let salesProgress = 0;
-  let customerSatisfaction = 85;
-  let trainingCompleted = false;
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.appspot.com",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
+    };
 
-  function completeTask() {
-    points += 100;
-    document.getElementById("points").innerText = points;
-    document.getElementById("user-points").innerText = points + " Points";
-    updateProgress();
-    displayNotification("Task Completed! You've earned 100 points.");
-    checkForLevelUp();
-    checkForAchievements();
-    updateLeaderboard();
-  }
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
 
-  function completeMission(type) {
-    if (type === "sales") {
-      salesProgress++;
-      document.getElementById("sales-progress").innerText = salesProgress;
-      if (salesProgress >= 15) {
-        points += 200;
-        document.getElementById("user-points").innerText = points + " Points";
-        displayNotification("Sales Mission Completed! You've earned 200 points.");
-        updateProgress();
+    // Fetch and display user information
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log("Authenticated user ID:", user.uid); // Debugging: Check user ID
+
+        // Get user information from the database
+        const userRef = db.ref("users/" + user.uid);
+        userRef.once("value")
+          .then((snapshot) => {
+            const userData = snapshot.val();
+            console.log("User data fetched from Firebase:", userData); // Debugging: Log the user data
+
+            // Display user information if available
+            if (userData) {
+              document.getElementById("userName").innerText = `${userData.firstName} ${userData.lastName}`;
+              document.getElementById("userPoints").innerText = userData.points || 0;
+              document.getElementById("userDepot").innerText = userData.depot || "N/A";
+            } else {
+              console.warn("User data not found in Firebase.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching user data:", error); // Log any errors in fetching data
+          });
+
+        // Fetch and display leaderboard
+        fetchLeaderboard();
+      } else {
+        // Redirect to login if not authenticated
+        window.location.href = "login.html";
       }
-    } else if (type === "training") {
-      trainingCompleted = true;
-      document.getElementById("training-completed").innerText = "Yes";
-      points += 100;
-      document.getElementById("user-points").innerText = points + " Points";
-      displayNotification("Training Completed! You've earned 100 points.");
-      updateProgress();
+    });
+
+    // Function to fetch and display leaderboard
+    function fetchLeaderboard() {
+      const leaderboardRef = db.ref("users");
+      leaderboardRef.once("value")
+        .then((snapshot) => {
+          const leaderboard = snapshot.val();
+          const leaderboardList = document.getElementById("leaderboard");
+          leaderboardList.innerHTML = ""; // Clear existing entries
+
+          // Create leaderboard entries
+          for (const userId in leaderboard) {
+            const user = leaderboard[userId];
+            const listItem = document.createElement("li");
+            listItem.innerText = `${user.firstName} ${user.lastName}: ${user.points} points`;
+            leaderboardList.appendChild(listItem);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching leaderboard data:", error);
+        });
     }
-    checkForAchievements();
-    updateLeaderboard();
-  }
-
-  function displayNotification(message) {
-    const notification = document.getElementById("notification");
-    notification.innerText = message;
-    notification.style.display = "block";
-    setTimeout(() => notification.style.display = "none", 3000);
-  }
-
-  function updateProgress() {
-    const progressPercent = (points % 1000) / 10;
-    document.getElementById("progress").style.width = progressPercent + "%";
-  }
-
-  function checkForLevelUp() {
-    if (points >= level * 1000) {
-      level++;
-      document.getElementById("level").innerText = level;
-      displayNotification("Congratulations! You've reached Level " + level);
-    }
-  }
-
-  function checkForAchievements() {
-    const badgesContainer = document.getElementById("badges");
-    badgesContainer.innerHTML = "";  // Clear existing badges
-    if (salesProgress >= 15) badgesContainer.innerHTML += '<span class="badge">Sales Superstar</span>';
-    if (trainingCompleted) badgesContainer.innerHTML += '<span class="badge">Master Trainer</span>';
-    if (points >= 1000) badgesContainer.innerHTML += '<span class="badge">Cold Call Conqueror</span>';
-  }
-
-  function updateLeaderboard() {
-    const userRanking = document.getElementById("user-ranking");
-    userRanking.setAttribute("data-points", points);
-    const leaderboard = Array.from(document.querySelectorAll("#leaderboard li"));
-    leaderboard.sort((a, b) => b.getAttribute("data-points") - a.getAttribute("data-points"));
-    const leaderboardContainer = document.getElementById("leaderboard");
-    leaderboardContainer.innerHTML = "";
-    leaderboard.forEach(agent => leaderboardContainer.appendChild(agent));
-  }
-</script>
-
+  </script>
 </body>
 </html>
