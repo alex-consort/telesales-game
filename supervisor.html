@@ -129,16 +129,6 @@
       <button onclick="addShopItem()">Add Shop Item</button>
     </div>
 
-    <!-- Objective Section with Add Objective functionality -->
-    <div class="card" id="objectivesCard">
-      <h2>Available Objectives</h2>
-      <div id="objectivesList"></div>
-      <h3>Add New Objective</h3>
-      <input type="text" id="objectiveName" placeholder="Objective Name">
-      <input type="number" id="objectivePoints" placeholder="Points">
-      <button onclick="addObjective()">Add Objective</button>
-    </div>
-
     <!-- Short Dated Product Section -->
     <div class="card" id="shortDatedCard">
       <h2>Available Short Dated Products</h2>
@@ -149,6 +139,24 @@
       <input type="number" id="reducedPrice" placeholder="Reduced Price (£)" step="0.01">
       <input type="number" id="shortDatedPoints" placeholder="Points">
       <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
+    </div>
+
+    <!-- Redemption List -->
+    <div class="card" id="redemptionListCard">
+      <h2>Redeemed Shop Items</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Item Redeemed</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="redeemedItemsList">
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -168,10 +176,11 @@
       measurementId: "G-7LNG5176PW"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fetch Players, Products, Objectives, and Short Dated Products from Firebase
+    // Fetch Players, Products, Objectives, and Shop Items from Firebase
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
@@ -225,7 +234,54 @@
       }, (error) => console.error("Error fetching shop items:", error));
     }
 
-    // Add Shop Item
+    function fetchShortDatedProducts() {
+      const shortDatedProductsRef = db.ref("shortDatedProducts");
+      shortDatedProductsRef.on("value", (snapshot) => {
+        const shortDatedProductsList = document.getElementById("shortDatedProductsList");
+        shortDatedProductsList.innerHTML = "";
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          const bestBeforeDateFormatted = new Date(product.bestBeforeDate).toLocaleDateString("en-GB");
+          shortDatedProductsList.innerHTML += `
+            <div class="card">
+              <strong>${product.description}</strong><br>
+              Best Before: ${bestBeforeDateFormatted}<br>
+              Price: £${product.price.toFixed(2)}<br>
+              Points: ${product.points}<br>
+              <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      }, (error) => console.error("Error fetching short dated products:", error));
+    }
+
+    // Redemption List fetching
+    function fetchRedeemedItems() {
+      const purchasesRef = db.ref("purchases");
+      purchasesRef.on("value", (snapshot) => {
+        const redeemedItemsList = document.getElementById("redeemedItemsList");
+        redeemedItemsList.innerHTML = "";
+        snapshot.forEach((childSnapshot) => {
+          const purchase = childSnapshot.val();
+          const userRef = db.ref("users/" + purchase.userId);
+          userRef.once("value", (userSnapshot) => {
+            const user = userSnapshot.val();
+            redeemedItemsList.innerHTML += `
+              <tr>
+                <td>${user.firstName} ${user.lastName}</td>
+                <td>${purchase.itemName}</td>
+                <td>${new Date(purchase.purchaseDate).toLocaleDateString()}</td>
+                <td>${purchase.status || 'Pending'}</td>
+                <td>
+                  <button onclick="completeRedemption('${childSnapshot.key}')">Completed</button>
+                  <button onclick="removeRedemption('${childSnapshot.key}')">Remove</button>
+                </td>
+              </tr>`;
+          });
+        });
+      }, (error) => console.error("Error fetching redeemed items:", error));
+    }
+
     function addShopItem() {
       const name = document.getElementById("shopItemName").value;
       const pointsRequired = parseInt(document.getElementById("shopItemPoints").value, 10);
@@ -245,16 +301,7 @@
         .catch((error) => console.error("Error adding shop item:", error));
     }
 
-    // Remove Shop Item
-    function removeShopItem(itemId) {
-      db.ref("shopItems/" + itemId).remove()
-        .then(() => {
-          alert("Shop item removed successfully!");
-          fetchShopItems();
-        })
-        .catch((error) => console.error("Error removing shop item:", error));
-    }
-
+    // Adjust Player Points
     function adjustPoints(playerId) {
       const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
       const change = parseInt(pointsInput.value, 10) || 0;
@@ -276,6 +323,8 @@
     fetchPlayers();
     fetchProducts();
     fetchShopItems();
+    fetchShortDatedProducts();
+    fetchRedeemedItems();
   </script>
 </body>
 </html>
