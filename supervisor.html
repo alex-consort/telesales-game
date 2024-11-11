@@ -255,7 +255,6 @@
         .catch((error) => console.error("Error removing shop item:", error));
     }
 
-    // Adjust Player Points
     function adjustPoints(playerId) {
       const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
       const change = parseInt(pointsInput.value, 10) || 0;
@@ -273,7 +272,7 @@
       });
     }
 
-    // Initial Fetching
+    // Fetch data initially
     fetchPlayers();
     fetchProducts();
     fetchShopItems();
