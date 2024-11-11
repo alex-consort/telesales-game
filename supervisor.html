@@ -53,9 +53,21 @@
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 30%;
+      width: 30%; 
       margin-bottom: 20px;
       text-align: left;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #617B8F;
+      color: white;
     }
     button {
       padding: 10px 20px;
@@ -69,32 +81,6 @@
     }
     button:hover {
       background-color: #FF4E59;
-    }
-    input {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #97CFF3;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
-    table {
-      width: 100%;
-      margin-top: 20px;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 8px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-    th {
-      background-color: #617B8F;
-      color: white;
-    }
-    .remove-button {
-      background-color: #FF4E59;
-      margin-top: 10px;
     }
   </style>
 </head>
@@ -116,65 +102,33 @@
   </header>
 
   <div class="dashboard">
-    <!-- Player List Section with Adjust Points functionality -->
+    <!-- Player List Section -->
     <div class="card" id="playersCard">
       <h2>Player List</h2>
       <p>To adjust a player’s points, enter a positive number to add points or a negative number (e.g., -5) to deduct points, then click "Adjust Points".</p>
       <div id="playersList"></div>
     </div>
 
-    <!-- Product Section with Add Product functionality -->
+    <!-- Available Products Section -->
     <div class="card" id="productsCard">
       <h2>Available Products</h2>
       <div id="productList"></div>
-      <h3>Add New Product</h3>
-      <input type="text" id="productName" placeholder="Product Name">
-      <input type="number" id="productPoints" placeholder="Points">
-      <button onclick="addProduct()">Add Product</button>
     </div>
 
-    <!-- Objective Section with Add Objective functionality -->
-    <div class="card" id="objectivesCard">
-      <h2>Available Objectives</h2>
-      <div id="objectivesList"></div>
-      <h3>Add New Objective</h3>
-      <input type="text" id="objectiveName" placeholder="Objective Name">
-      <input type="number" id="objectivePoints" placeholder="Points">
-      <button onclick="addObjective()">Add Objective</button>
-    </div>
-
-    <!-- Short Dated Product Section -->
+    <!-- Available Short Dated Products Section -->
     <div class="card" id="shortDatedCard">
       <h2>Available Short Dated Products</h2>
       <div id="shortDatedProductsList"></div>
-      <h3>Add New Short Dated Product</h3>
-      <input type="text" id="shortDatedDescription" placeholder="Product Description">
-      <input type="date" id="bestBeforeDate" placeholder="Best Before Date (dd/MM/yy)">
-      <input type="number" id="reducedPrice" placeholder="Reduced Price (£)" step="0.01">
-      <input type="number" id="shortDatedPoints" placeholder="Points">
-      <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
     </div>
 
-    <!-- Manage Shop Items Section -->
-    <div class="card" id="shopItemsCard">
-      <h2>Manage Shop Items</h2>
-      <p>Add, view, or remove shop items.</p>
-      <h3>Add New Shop Item</h3>
-      <input type="text" id="shopItemName" placeholder="Item Name">
-      <input type="number" id="shopItemPoints" placeholder="Points Required" min="1">
-      <button onclick="addShopItem()">Add Item</button>
-      <h3>Current Shop Items</h3>
-      <div id="shopItemsList"></div>
-    </div>
-
-    <!-- Shop Redemption History -->
+    <!-- Redemption History Section -->
     <div class="card" id="redemptionHistoryCard">
       <h2>Redemption History</h2>
       <table>
         <thead>
           <tr>
             <th>Item</th>
-            <th>User</th>
+            <th>User (First Name Last Name)</th>
             <th>Points Spent</th>
             <th>Date</th>
             <th>Status</th>
@@ -192,85 +146,38 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
-      authDomain: "telesalesgame-a09f2.firebaseapp.com",
-      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
-      messagingSenderId: "1097332097301",
-      appId: "1:1097332097301:web:51b0151499e33f7851291c",
-      measurementId: "G-7LNG5176PW"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
     };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fetch and manage shop items, redemptions, and other data
-    function fetchShopItems() {
-      const shopItemsRef = db.ref("shopItems");
-      shopItemsRef.on("value", (snapshot) => {
-        const shopItemsList = document.getElementById("shopItemsList");
-        shopItemsList.innerHTML = "";
-        snapshot.forEach((childSnapshot) => {
-          const item = childSnapshot.val();
-          const itemId = childSnapshot.key;
-          shopItemsList.innerHTML += `
-            <div class="card">
-              <strong>${item.name}</strong> - ${item.pointsRequired} Points
-              <button class="remove-button" onclick="removeShopItem('${itemId}')">Remove Item</button>
-            </div>`;
-        });
-      });
+    function fetchPlayers() {
+      // Code to fetch and display players
+    }
+
+    function fetchProducts() {
+      // Code to fetch and display products
+    }
+
+    function fetchShortDatedProducts() {
+      // Code to fetch and display short dated products
     }
 
     function fetchRedemptionHistory() {
-      const redemptionsRef = db.ref("purchases");
-      redemptionsRef.on("value", (snapshot) => {
-        const redemptionHistoryList = document.getElementById("redemptionHistoryList");
-        redemptionHistoryList.innerHTML = "";
-        snapshot.forEach((childSnapshot) => {
-          const redemption = childSnapshot.val();
-          const redemptionId = childSnapshot.key;
-          redemptionHistoryList.innerHTML += `
-            <tr>
-              <td>${redemption.itemName}</td>
-              <td>${redemption.userName}</td>
-              <td>${redemption.pointsSpent}</td>
-              <td>${new Date(redemption.date).toLocaleDateString("en-GB")}</td>
-              <td>${redemption.status}</td>
-              <td><button onclick="markRedemptionComplete('${redemptionId}')">Mark as Complete</button></td>
-            </tr>`;
-        });
-      });
+      // Code to fetch and display redemption history
     }
 
-    function addShopItem() {
-      const name = document.getElementById("shopItemName").value;
-      const pointsRequired = parseInt(document.getElementById("shopItemPoints").value, 10);
-      if (!name || isNaN(pointsRequired)) {
-        alert("Please enter a valid item name and points required.");
-        return;
-      }
-      db.ref("shopItems").push({ name, pointsRequired });
-      document.getElementById("shopItemName").value = "";
-      document.getElementById("shopItemPoints").value = "";
-      fetchShopItems();
-    }
-
-    function removeShopItem(itemId) {
-      db.ref("shopItems/" + itemId).remove().then(() => fetchShopItems());
-    }
-
-    function markRedemptionComplete(redemptionId) {
-      db.ref("purchases/" + redemptionId).update({ status: "Completed" });
-    }
-
-    fetchShopItems();
-    fetchRedemptionHistory();
     fetchPlayers();
     fetchProducts();
-    fetchObjectives();
     fetchShortDatedProducts();
+    fetchRedemptionHistory();
   </script>
 </body>
 </html>
