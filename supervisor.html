@@ -102,44 +102,54 @@
   </header>
 
   <div class="dashboard">
-    <!-- Player List Section -->
+    <!-- Player List Section with Adjust Points functionality -->
     <div class="card" id="playersCard">
       <h2>Player List</h2>
-      <div id="playersList">Loading...</div>
+      <p>To adjust a player’s points, enter a positive number to add points or a negative number (e.g., -5) to deduct points, then click "Adjust Points".</p>
+      <div id="playersList"></div>
     </div>
 
-    <!-- Products Section -->
+    <!-- Product Section with Add Product functionality -->
     <div class="card" id="productsCard">
       <h2>Available Products</h2>
-      <div id="productList">Loading...</div>
+      <div id="productList"></div>
+      <h3>Add New Product</h3>
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="number" id="productPoints" placeholder="Points">
+      <button onclick="addProduct()">Add Product</button>
     </div>
 
-    <!-- Shop Items Section -->
+    <!-- Shopkeeper Section for Adding/Removing Shop Items -->
     <div class="card" id="shopItemsCard">
       <h2>Shop Items</h2>
-      <div id="shopItemsList">Loading...</div>
+      <div id="shopItemsList"></div>
+      <h3>Add New Shop Item</h3>
       <input type="text" id="shopItemName" placeholder="Shop Item Name">
       <input type="number" id="shopItemPoints" placeholder="Points Required">
       <button onclick="addShopItem()">Add Shop Item</button>
     </div>
 
-    <!-- Redeemed Shop Items Section -->
-    <div class="card" id="redeemedItemsCard">
-      <h2>Redeemed Shop Items</h2>
-      <table id="redeemedItemsTable">
-        <thead>
-          <tr>
-            <th>User</th>
-            <th>Item Redeemed</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="redeemedItemsList">Loading...</tbody>
-      </table>
+    <!-- Objective Section with Add Objective functionality -->
+    <div class="card" id="objectivesCard">
+      <h2>Available Objectives</h2>
+      <div id="objectivesList"></div>
+      <h3>Add New Objective</h3>
+      <input type="text" id="objectiveName" placeholder="Objective Name">
+      <input type="number" id="objectivePoints" placeholder="Points">
+      <button onclick="addObjective()">Add Objective</button>
     </div>
 
+    <!-- Short Dated Product Section -->
+    <div class="card" id="shortDatedCard">
+      <h2>Available Short Dated Products</h2>
+      <div id="shortDatedProductsList"></div>
+      <h3>Add New Short Dated Product</h3>
+      <input type="text" id="shortDatedDescription" placeholder="Product Description">
+      <input type="date" id="bestBeforeDate" placeholder="Best Before Date (dd/MM/yy)">
+      <input type="number" id="reducedPrice" placeholder="Reduced Price (£)" step="0.01">
+      <input type="number" id="shortDatedPoints" placeholder="Points">
+      <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
+    </div>
   </div>
 
   <!-- Firebase SDKs -->
@@ -161,7 +171,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fetch Players Data
+    // Fetch Players, Products, Objectives, and Short Dated Products from Firebase
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
@@ -174,12 +184,30 @@
             <div class="card">
               <strong>${playerData.firstName} ${playerData.lastName}</strong>
               <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
+              <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
+              <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
             </div>`;
         });
       }, (error) => console.error("Error fetching players:", error));
     }
 
-    // Fetch Shop Items
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div class="card">
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      }, (error) => console.error("Error fetching products:", error));
+    }
+
     function fetchShopItems() {
       const shopItemsRef = db.ref("shopItems");
       shopItemsRef.on("value", (snapshot) => {
@@ -197,44 +225,13 @@
       }, (error) => console.error("Error fetching shop items:", error));
     }
 
-    // Fetch Redeemed Shop Items
-    function fetchRedeemedItems() {
-      const redeemedItemsRef = db.ref("purchases");
-      redeemedItemsRef.on("value", (snapshot) => {
-        const redeemedItemsList = document.getElementById("redeemedItemsList");
-        redeemedItemsList.innerHTML = "";
-        snapshot.forEach((childSnapshot) => {
-          const redemption = childSnapshot.val();
-          const userId = redemption.userId;
-          const itemName = redemption.itemName;
-          const status = redemption.status || "Pending";
-          const userRef = db.ref("users/" + userId);
-          userRef.once("value", (userSnapshot) => {
-            const userData = userSnapshot.val();
-            const userName = `${userData.firstName} ${userData.lastName}`;
-            redeemedItemsList.innerHTML += `
-              <tr>
-                <td>${userName}</td>
-                <td>${itemName}</td>
-                <td>${new Date(redemption.purchaseDate).toLocaleDateString()}</td>
-                <td>${status}</td>
-                <td>
-                  <button class="complete-button" onclick="completeRedemption('${childSnapshot.key}')">Complete</button>
-                  <button class="remove-button" onclick="removeRedemption('${childSnapshot.key}')">Remove</button>
-                </td>
-              </tr>`;
-          });
-        });
-      }, (error) => console.error("Error fetching redeemed items:", error));
-    }
-
-    // Add Shop Item Function
+    // Add Shop Item
     function addShopItem() {
       const name = document.getElementById("shopItemName").value;
       const pointsRequired = parseInt(document.getElementById("shopItemPoints").value, 10);
 
       if (!name || isNaN(pointsRequired)) {
-        alert("Please enter valid shop item details.");
+        alert("Please enter a valid shop item name and points.");
         return;
       }
 
@@ -248,11 +245,38 @@
         .catch((error) => console.error("Error adding shop item:", error));
     }
 
+    // Remove Shop Item
+    function removeShopItem(itemId) {
+      db.ref("shopItems/" + itemId).remove()
+        .then(() => {
+          alert("Shop item removed successfully!");
+          fetchShopItems();
+        })
+        .catch((error) => console.error("Error removing shop item:", error));
+    }
+
+    // Adjust Player Points
+    function adjustPoints(playerId) {
+      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
+      const change = parseInt(pointsInput.value, 10) || 0;
+
+      db.ref("users/" + playerId).once("value").then((snapshot) => {
+        const currentPoints = snapshot.val().points || 0;
+        const newPoints = currentPoints + change;
+
+        db.ref("users/" + playerId).update({ points: newPoints })
+          .then(() => {
+            alert("Points adjusted successfully!");
+            fetchPlayers();
+          })
+          .catch((error) => console.error("Error adjusting points:", error));
+      });
+    }
+
     // Initial Fetching
     fetchPlayers();
+    fetchProducts();
     fetchShopItems();
-    fetchRedeemedItems();
   </script>
-
 </body>
 </html>
