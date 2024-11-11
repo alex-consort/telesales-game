@@ -153,20 +153,22 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
-      authDomain: "telesalesgame-a09f2.firebaseapp.com",
-      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
-      messagingSenderId: "1097332097301",
-      appId: "1:1097332097301:web:51b0151499e33f7851291c",
-      measurementId: "G-7LNG5176PW"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
 
     let currentPoints = 0;
+    let userFirstName = "User";
+    let userLastName = "";
 
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -180,8 +182,8 @@
         // Fetch user profile details (first name and last name)
         db.ref("users/" + user.uid).once("value").then((snapshot) => {
           const userData = snapshot.val();
-          window.userFirstName = userData.firstName || "User";
-          window.userLastName = userData.lastName || "";
+          userFirstName = userData.firstName || "User";
+          userLastName = userData.lastName || "";
         });
 
         fetchShopItems();
@@ -237,8 +239,8 @@
         // Record the purchase in Firebase including user's first and last name
         purchasesRef.push({
           userId: user.uid,
-          firstName: window.userFirstName,
-          lastName: window.userLastName,
+          firstName: userFirstName,
+          lastName: userLastName,
           itemId: itemId,
           itemName: itemName,
           pointsSpent: pointsRequired,
