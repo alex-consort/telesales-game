@@ -11,7 +11,7 @@
       margin: 20px;
       color: #333;
     }
-    h1 {
+    h1, h2 {
       color: #274358;
     }
     label {
@@ -24,10 +24,10 @@
       margin: 5px 0;
       display: block;
     }
-    .product-list {
+    .player-list, .product-list {
       margin-top: 20px;
     }
-    .product-item {
+    .player-item, .product-item {
       border: 1px solid #ddd;
       padding: 10px;
       margin: 5px 0;
@@ -45,6 +45,7 @@
 <body>
   <h1>Supervisor Dashboard</h1>
 
+  <!-- Section to update the sales objective -->
   <h2>Update Sales Objective</h2>
   <form onsubmit="updateObjective(); return false;">
     <label>New Sales Objective:</label>
@@ -52,6 +53,7 @@
     <button type="submit">Update Objective</button>
   </form>
 
+  <!-- Section to add a short-dated product -->
   <h2>Add Short Dated Product</h2>
   <form onsubmit="addShortDatedProduct(); return false;">
     <label>Product Description:</label>
@@ -72,11 +74,15 @@
   <h2>Available Short Dated Products</h2>
   <div id="shortDatedProductsList" class="product-list"></div>
 
+  <!-- Section to manage players -->
+  <h2>Manage Players</h2>
+  <div id="playersList" class="player-list"></div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.x/firebase-app.js";
     import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.x/firebase-database.js";
 
-    // Firebase configuration (replace with your own Firebase config details)
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
@@ -98,7 +104,6 @@
       alert("Objective updated to " + newObjective + " sales!");
     }
 
-    // Function to add a new short-dated product
     function addShortDatedProduct() {
       const description = document.getElementById("product-description").value;
       const bestBeforeDate = document.getElementById("best-before-date").value;
@@ -122,13 +127,12 @@
       });
     }
 
-    // Function to fetch and display short-dated products
     function fetchShortDatedProducts() {
       const shortDatedProductsRef = ref(db, 'shortDatedProducts');
       onValue(shortDatedProductsRef, (snapshot) => {
         const products = snapshot.val();
         const productList = document.getElementById("shortDatedProductsList");
-        productList.innerHTML = ""; // Clear previous products
+        productList.innerHTML = "";
 
         for (const key in products) {
           const product = products[key];
@@ -146,7 +150,6 @@
       });
     }
 
-    // Function to remove a short-dated product
     function removeShortDatedProduct(productId) {
       const productRef = ref(db, 'shortDatedProducts/' + productId);
       remove(productRef).then(() => {
@@ -156,8 +159,40 @@
       });
     }
 
-    // Fetch products when the page loads
+    // Fetch and display players
+    function fetchPlayers() {
+      const playersRef = ref(db, 'users');
+      onValue(playersRef, (snapshot) => {
+        const players = snapshot.val();
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = ""; // Clear previous player list
+
+        for (const key in players) {
+          const player = players[key];
+          const playerItem = document.createElement("div");
+          playerItem.className = "player-item";
+          playerItem.innerHTML = `
+            <strong>${player.firstName} ${player.lastName}</strong><br>
+            Points: ${player.points}<br>
+            <button class="remove-button" onclick="removePlayer('${key}')">Remove Player</button>
+          `;
+          playersList.appendChild(playerItem);
+        }
+      });
+    }
+
+    function removePlayer(playerId) {
+      const playerRef = ref(db, 'users/' + playerId);
+      remove(playerRef).then(() => {
+        alert("Player removed successfully!");
+      }).catch((error) => {
+        console.error("Error removing player:", error);
+      });
+    }
+
+    // Fetch data when the page loads
     fetchShortDatedProducts();
+    fetchPlayers();
   </script>
 </body>
 </html>
