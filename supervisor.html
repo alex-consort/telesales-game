@@ -44,32 +44,18 @@
     }
     .dashboard {
       display: flex;
-      flex-wrap: wrap;
       justify-content: space-around;
       padding: 20px;
+      flex-wrap: wrap;
     }
     .card {
       background-color: #ffffff;
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 45%; 
+      width: 30%; 
       margin-bottom: 20px;
       text-align: left;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background-color: #617B8F;
-      color: white;
     }
     button {
       padding: 10px 20px;
@@ -92,6 +78,10 @@
       border-radius: 5px;
       box-sizing: border-box;
     }
+    .remove-button {
+      background-color: #FF4E59;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -99,7 +89,6 @@
   <div class="navbar">
     <a href="profile.html">Profile</a>
     <a href="game.html">Play Game</a>
-    <a href="shop.html">Shop</a>
     <a href="achievements.html">Achievements</a>
     <a href="settings.html">Settings</a>
     <a href="supervisor.html">Supervisor</a>
@@ -112,40 +101,43 @@
   </header>
 
   <div class="dashboard">
-    <!-- Player List Section -->
+    <!-- Player List Section with Adjust Points functionality -->
     <div class="card" id="playersCard">
       <h2>Player List</h2>
+      <p>To adjust a player’s points, enter a positive number to add points or a negative number (e.g., -5) to deduct points, then click "Adjust Points".</p>
       <div id="playersList"></div>
     </div>
 
-    <!-- Manage Shop Items Section -->
-    <div class="card" id="shopItemsCard">
-      <h2>Manage Shop Items</h2>
-      <div id="shopItemList"></div>
-      <h3>Add New Shop Item</h3>
-      <input type="text" id="shopItemName" placeholder="Item Name">
-      <input type="number" id="shopItemPoints" placeholder="Points Required">
-      <button onclick="addShopItem()">Add Item</button>
+    <!-- Product Section with Add Product functionality -->
+    <div class="card" id="productsCard">
+      <h2>Available Products</h2>
+      <div id="productList"></div>
+      <h3>Add New Product</h3>
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="number" id="productPoints" placeholder="Points">
+      <button onclick="addProduct()">Add Product</button>
     </div>
 
-    <!-- Redemption History Section -->
-    <div class="card" id="redemptionHistoryCard">
-      <h2>Redemption History</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>User (First Name Last Name)</th>
-            <th>Points Spent</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="redemptionHistoryTable">
-          <!-- Redemption records will be populated here -->
-        </tbody>
-      </table>
+    <!-- Objective Section with Add Objective functionality -->
+    <div class="card" id="objectivesCard">
+      <h2>Available Objectives</h2>
+      <div id="objectivesList"></div>
+      <h3>Add New Objective</h3>
+      <input type="text" id="objectiveName" placeholder="Objective Name">
+      <input type="number" id="objectivePoints" placeholder="Points">
+      <button onclick="addObjective()">Add Objective</button>
+    </div>
+
+    <!-- Short Dated Product Section -->
+    <div class="card" id="shortDatedCard">
+      <h2>Available Short Dated Products</h2>
+      <div id="shortDatedProductsList"></div>
+      <h3>Add New Short Dated Product</h3>
+      <input type="text" id="shortDatedDescription" placeholder="Product Description">
+      <input type="date" id="bestBeforeDate" placeholder="Best Before Date (dd/MM/yy)">
+      <input type="number" id="reducedPrice" placeholder="Reduced Price (£)" step="0.01">
+      <input type="number" id="shortDatedPoints" placeholder="Points">
+      <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
     </div>
   </div>
 
@@ -169,75 +161,191 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function addShopItem() {
-      const name = document.getElementById("shopItemName").value;
-      const pointsRequired = parseInt(document.getElementById("shopItemPoints").value, 10);
+    function fetchPlayers() {
+      const playersRef = db.ref("users");
+      playersRef.on("value", (snapshot) => {
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = "";
 
-      if (!name || isNaN(pointsRequired)) {
-        alert("Please enter a valid item name and points required.");
-        return;
-      }
-
-      db.ref("shopItems").push({ name, pointsRequired })
-        .then(() => {
-          alert("Shop item added successfully!");
-          document.getElementById("shopItemName").value = "";
-          document.getElementById("shopItemPoints").value = "";
-          fetchShopItems();
-        });
-    }
-
-    function fetchShopItems() {
-      const shopItemList = document.getElementById("shopItemList");
-      shopItemList.innerHTML = "";
-
-      db.ref("shopItems").on("value", (snapshot) => {
         snapshot.forEach((childSnapshot) => {
-          const item = childSnapshot.val();
-          const itemId = childSnapshot.key;
-          shopItemList.innerHTML += `
+          const playerData = childSnapshot.val();
+          const playerId = childSnapshot.key;
+          playersList.innerHTML += `
             <div class="card">
-              <strong>${item.name}</strong> - ${item.pointsRequired} Points
-              <button class="remove-button" onclick="removeShopItem('${itemId}')">Remove Item</button>
+              <strong>${playerData.firstName} ${playerData.lastName}</strong>
+              <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
+              <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
+              <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
             </div>`;
         });
       });
     }
 
-    function fetchRedemptionHistory() {
-      const redemptionHistoryTable = document.getElementById("redemptionHistoryTable");
-      redemptionHistoryTable.innerHTML = "";
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
 
-      db.ref("purchases").on("value", (snapshot) => {
         snapshot.forEach((childSnapshot) => {
-          const purchase = childSnapshot.val();
-          const purchaseId = childSnapshot.key;
-          const formattedDate = new Date(purchase.purchaseDate).toLocaleDateString("en-GB");
-
-          redemptionHistoryTable.innerHTML += `
-            <tr>
-              <td>${purchase.itemName}</td>
-              <td>${purchase.userName}</td>
-              <td>${purchase.pointsSpent}</td>
-              <td>${formattedDate}</td>
-              <td>${purchase.status || "Pending"}</td>
-              <td><button onclick="markAsComplete('${purchaseId}')">Mark as Complete</button></td>
-            </tr>`;
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div class="card">
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
         });
       });
     }
 
-    function markAsComplete(purchaseId) {
-      db.ref("purchases/" + purchaseId).update({ status: "Complete" })
+    function fetchShortDatedProducts() {
+      const shortDatedProductsRef = db.ref("shortDatedProducts");
+      shortDatedProductsRef.on("value", (snapshot) => {
+        const shortDatedProductsList = document.getElementById("shortDatedProductsList");
+        shortDatedProductsList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          const bestBeforeDateFormatted = new Date(product.bestBeforeDate).toLocaleDateString("en-GB");
+
+          shortDatedProductsList.innerHTML += `
+            <div class="card">
+              <strong>${product.description}</strong><br>
+              Best Before: ${bestBeforeDateFormatted}<br>
+              Price: £${product.price.toFixed(2)}<br>
+              Points: ${product.points}<br>
+              <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
+
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectivesList = document.getElementById("objectivesList");
+        objectivesList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const objective = childSnapshot.val();
+          const objectiveId = childSnapshot.key;
+          objectivesList.innerHTML += `
+            <div class="card">
+              <strong>${objective.name}</strong> - ${objective.points} Points
+              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+            </div>`;
+        });
+      });
+    }
+
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid product name and points.");
+        return;
+      }
+
+      db.ref("products").push({ name, points })
         .then(() => {
-          alert("Redemption marked as complete.");
-          fetchRedemptionHistory();
+          alert("Product added successfully!");
+          document.getElementById("productName").value = "";
+          document.getElementById("productPoints").value = "";
+          fetchProducts();
         });
     }
 
-    // Initial fetch calls
-    fetchShopItems();
-    fetchRedemptionHistory();
+    function addObjective() {
+      const name = document.getElementById("objectiveName").value;
+      const points = parseInt(document.getElementById("objectivePoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid objective name and points.");
+        return;
+      }
+
+      db.ref("objectives").push({ name, points })
+        .then(() => {
+          alert("Objective added successfully!");
+          document.getElementById("objectiveName").value = "";
+          document.getElementById("objectivePoints").value = "";
+          fetchObjectives();
+        });
+    }
+
+    function addShortDatedProduct() {
+      const description = document.getElementById("shortDatedDescription").value;
+      const bestBeforeDate = document.getElementById("bestBeforeDate").value;
+      const price = parseFloat(document.getElementById("reducedPrice").value);
+      const points = parseInt(document.getElementById("shortDatedPoints").value, 10);
+
+      if (!description || !bestBeforeDate || isNaN(price) || isNaN(points)) {
+        alert("Please fill in all fields with valid data.");
+        return;
+      }
+
+      db.ref("shortDatedProducts").push({
+        description: description,
+        bestBeforeDate: bestBeforeDate,
+        price: price,
+        points: points
+      }).then(() => {
+        alert("Short dated product added successfully!");
+        document.getElementById("shortDatedDescription").value = "";
+        document.getElementById("bestBeforeDate").value = "";
+        document.getElementById("reducedPrice").value = "";
+        document.getElementById("shortDatedPoints").value = "";
+        fetchShortDatedProducts();
+      });
+    }
+
+    function removeProduct(productId) {
+      db.ref("products/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts();
+        });
+    }
+
+    function removeObjective(objectiveId) {
+      db.ref("objectives/" + objectiveId).remove()
+        .then(() => {
+          alert("Objective removed successfully!");
+          fetchObjectives();
+        });
+    }
+
+    function removeShortDatedProduct(productId) {
+      db.ref("shortDatedProducts/" + productId).remove()
+        .then(() => {
+          alert("Short dated product removed successfully!");
+          fetchShortDatedProducts();
+        });
+    }
+
+    function adjustPoints(playerId) {
+      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
+      const change = parseInt(pointsInput.value, 10) || 0;
+
+      db.ref("users/" + playerId).once("value").then((snapshot) => {
+        const currentPoints = snapshot.val().points || 0;
+        const newPoints = currentPoints + change;
+
+        db.ref("users/" + playerId).update({ points: newPoints })
+          .then(() => {
+            alert("Points adjusted successfully!");
+            fetchPlayers();
+          });
+      });
+    }
+
+    fetchPlayers();
+    fetchProducts();
+    fetchObjectives();
+    fetchShortDatedProducts();
   </script>
 </body>
 </html>
