@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop - Telesales Game</title>
+  <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
+  <style>
+    body {
+      font-family: 'Calibri', sans-serif;
+      background-color: #f4f6f9;
+      color: #274358;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar {
+      background-color: #617B8F;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .navbar a:hover {
+      background-color: #FF4E59;
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: #617B8F;
+    }
+    .logo {
+      height: 50px;
+      margin-right: 20px;
+    }
+    .game-title {
+      color: #FFFFFF;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
+    .shop-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .points-display {
+      font-size: 1.2em;
+      color: #617B8F;
+      margin: 10px 0;
+    }
+    .item-card {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+      max-width: 250px;
+    }
+    .item-name {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #274358;
+      margin-bottom: 10px;
+    }
+    .item-details {
+      font-size: 0.9em;
+      color: #617B8F;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .item-button {
+      padding: 10px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .item-button:hover {
+      background-color: #FF4E59;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      justify-items: center;
+    }
+    .history-section {
+      margin-top: 30px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <a href="profile.html">Profile</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="game.html">Play Game</a>
+    <a href="achievements.html">Achievements</a>
+    <a href="settings.html">Settings</a>
+    <a href="shop.html">Shop</a>
+    <a href="logout.html">Log Out</a>
+  </div>
+
+  <header class="header">
+    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
+    <h1 class="game-title">Telesales Game - Shop</h1>
+  </header>
+
+  <div class="shop-container">
+    <p class="points-display">Your Points: <span id="userPoints">Loading...</span></p>
+    
+    <!-- Redemption Items -->
+    <div class="grid-container" id="shopItems">
+      <!-- Shop items are populated here -->
+    </div>
+
+    <!-- Purchase History Section -->
+    <div class="history-section">
+      <h3>Redemption History</h3>
+      <ul id="purchaseHistory">
+        <!-- Purchase history items are populated here -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+
+    let currentPoints = 0;
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        const userPointsRef = db.ref("users/" + user.uid + "/points");
+        userPointsRef.on("value", (snapshot) => {
+          currentPoints = snapshot.val() || 0;
+          document.getElementById("userPoints").innerText = currentPoints;
+        });
+        fetchShopItems();
+        fetchPurchaseHistory();
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    // Predefined Shop Items
+    const shopItems = [
+      { id: 'credit', name: "£5 Staff Purchase Credit", pointsRequired: 500 },
+      { id: 'early15', name: "Home 15 Minutes Early", pointsRequired: 300 },
+      { id: 'early60', name: "Home 1 Hour Early", pointsRequired: 1000 }
+    ];
+
+    function fetchShopItems() {
+      const shopItemsDiv = document.getElementById("shopItems");
+      shopItemsDiv.innerHTML = "";
+      shopItems.forEach((item) => {
+        const itemCard = document.createElement("div");
+        itemCard.className = "item-card";
+        itemCard.innerHTML = `
+          <div class="item-name">${item.name}</div>
+          <div class="item-details">Points Required: ${item.pointsRequired}</div>
+          <button class="item-button" onclick="redeemItem('${item.id}', ${item.pointsRequired}, '${item.name}')">Redeem</button>
+        `;
+        shopItemsDiv.appendChild(itemCard);
+      });
+    }
+
+    function redeemItem(itemId, pointsRequired, itemName) {
+      if (currentPoints < pointsRequired) {
+        alert("Not enough points to redeem this item.");
+        return;
+      }
+      if (confirm(`Are you sure you want to redeem "${itemName}" for ${pointsRequired} points?`)) {
+        processRedemption(itemId, pointsRequired, itemName);
+      }
+    }
+
+    function processRedemption(itemId, pointsRequired, itemName) {
+      const user = auth.currentUser;
+      const userPointsRef = db.ref("users/" + user.uid + "/points");
+      const purchasesRef = db.ref("purchases");
+
+      userPointsRef.transaction((currentPoints) => {
+        if (currentPoints >= pointsRequired) {
+          return currentPoints - pointsRequired;
+        } else {
+          alert("Not enough points!");
+          return;
+        }
+      }).then(() => {
+        purchasesRef.push({
+          userId: user.uid,
+          itemId: itemId,
+          itemName: itemName,
+          pointsSpent: pointsRequired,
+          purchaseDate: new Date().toISOString()
+        });
+        alert("Redemption successful!");
+        notifySupervisor(itemName, pointsRequired);
+      }).catch((error) => console.error("Redemption failed:", error));
+    }
+
+    function notifySupervisor(itemName, pointsRequired) {
+      // You can add further implementation here to send a notification to the supervisor.
+      console.log(`Supervisor notified: ${itemName} redeemed for ${pointsRequired} points.`);
+    }
+
+    function fetchPurchaseHistory() {
+      const purchasesRef = db.ref("purchases");
+      purchasesRef.orderByChild("userId").equalTo(auth.currentUser.uid).on("value", (snapshot) => {
+        const purchaseHistory = document.getElementById("purchaseHistory");
+        purchaseHistory.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const purchase = childSnapshot.val();
+          const formattedDate = new Date(purchase.purchaseDate).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+          });
+          purchaseHistory.innerHTML += `
+            <li>${purchase.itemName} - ${purchase.pointsSpent} Points (Redeemed on ${formattedDate})</li>
+          `;
+        });
+      });
+    }
+  </script>
+</body>
+</html>
