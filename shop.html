@@ -170,11 +170,20 @@
 
     auth.onAuthStateChanged((user) => {
       if (user) {
+        // Fetch user's points
         const userPointsRef = db.ref("users/" + user.uid + "/points");
         userPointsRef.on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
           document.getElementById("userPoints").innerText = currentPoints;
         });
+
+        // Fetch user profile details (first name and last name)
+        db.ref("users/" + user.uid).once("value").then((snapshot) => {
+          const userData = snapshot.val();
+          window.userFirstName = userData.firstName || "User";
+          window.userLastName = userData.lastName || "";
+        });
+
         fetchShopItems();
         fetchPurchaseHistory();
       } else {
@@ -225,10 +234,11 @@
           return;
         }
       }).then(() => {
+        // Record the purchase in Firebase including user's first and last name
         purchasesRef.push({
           userId: user.uid,
-          firstName: user.displayName ? user.displayName.split(" ")[0] : "User",
-          lastName: user.displayName ? user.displayName.split(" ")[1] || "" : "",
+          firstName: window.userFirstName,
+          lastName: window.userLastName,
           itemId: itemId,
           itemName: itemName,
           pointsSpent: pointsRequired,
