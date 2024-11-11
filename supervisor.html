@@ -44,16 +44,16 @@
     }
     .dashboard {
       display: flex;
-      flex-wrap: wrap;
       justify-content: space-around;
       padding: 20px;
+      flex-wrap: wrap;
     }
     .card {
       background-color: #ffffff;
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 45%; 
+      width: 30%; 
       margin-bottom: 20px;
       text-align: left;
     }
@@ -92,6 +92,10 @@
       border-radius: 5px;
       box-sizing: border-box;
     }
+    .remove-button {
+      background-color: #FF4E59;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -112,7 +116,7 @@
   </header>
 
   <div class="dashboard">
-    <!-- Existing Sections Here (unchanged code) -->
+    <!-- Existing Sections Here -->
 
     <!-- Player List Section -->
     <div class="card" id="playersCard">
@@ -152,9 +156,9 @@
       <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
     </div>
 
-    <!-- New Sections Added Below -->
+    <!-- New Sections Below -->
 
-    <!-- Manage Shop Items Section -->
+    <!-- Shop Item Management Section -->
     <div class="card" id="shopItemsCard">
       <h2>Manage Shop Items</h2>
       <div id="shopItemList"></div>
@@ -202,9 +206,14 @@
       measurementId: "G-7LNG5176PW"
     };
 
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
+    // Fetch and display data for each section as before
+    fetchPlayers();
+    fetchProducts();
+    fetchShortDatedProducts();
+    fetchObjectives();
 
     // Fetch and Manage Shop Items
     function addShopItem() {
@@ -242,6 +251,15 @@
       });
     }
 
+    function removeShopItem(itemId) {
+      db.ref("shopItems/" + itemId).remove()
+        .then(() => {
+          alert("Shop item removed successfully!");
+          fetchShopItems();
+        });
+    }
+
+    // Redemption History
     function fetchRedemptionHistory() {
       const redemptionHistoryTable = document.getElementById("redemptionHistoryTable");
       redemptionHistoryTable.innerHTML = "";
