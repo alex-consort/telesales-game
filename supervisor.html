@@ -44,8 +44,8 @@
     }
     .dashboard {
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      flex-wrap: wrap;
+      justify-content: space-around;
       padding: 20px;
     }
     .card {
@@ -53,12 +53,9 @@
       border-radius: 8px;
       padding: 20px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 80%;
+      width: 45%; 
       margin-bottom: 20px;
       text-align: left;
-    }
-    .table-container {
-      overflow-x: auto;
     }
     table {
       width: 100%;
@@ -115,7 +112,13 @@
   </header>
 
   <div class="dashboard">
-    <!-- Shop Item Management Section -->
+    <!-- Player List Section -->
+    <div class="card" id="playersCard">
+      <h2>Player List</h2>
+      <div id="playersList"></div>
+    </div>
+
+    <!-- Manage Shop Items Section -->
     <div class="card" id="shopItemsCard">
       <h2>Manage Shop Items</h2>
       <div id="shopItemList"></div>
@@ -128,23 +131,21 @@
     <!-- Redemption History Section -->
     <div class="card" id="redemptionHistoryCard">
       <h2>Redemption History</h2>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>User (First Name Last Name)</th>
-              <th>Points Spent</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="redemptionHistoryTable">
-            <!-- Redemption records will be populated here -->
-          </tbody>
-        </table>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>User (First Name Last Name)</th>
+            <th>Points Spent</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="redemptionHistoryTable">
+          <!-- Redemption records will be populated here -->
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -203,14 +204,6 @@
       });
     }
 
-    function removeShopItem(itemId) {
-      db.ref("shopItems/" + itemId).remove()
-        .then(() => {
-          alert("Shop item removed successfully!");
-          fetchShopItems();
-        });
-    }
-
     function fetchRedemptionHistory() {
       const redemptionHistoryTable = document.getElementById("redemptionHistoryTable");
       redemptionHistoryTable.innerHTML = "";
@@ -242,6 +235,7 @@
         });
     }
 
+    // Initial fetch calls
     fetchShopItems();
     fetchRedemptionHistory();
   </script>
