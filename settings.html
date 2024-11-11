@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Telesales Game</title>
+  <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
+  <style>
+    body {
+      font-family: 'Calibri', sans-serif;
+      background-color: #f4f6f9;
+      color: #274358;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+      text-align: left;
+    }
+    h1 {
+      color: #274358;
+    }
+    label {
+      display: block;
+      margin-top: 20px;
+      color: #617B8F;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 20px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #FF4E59;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Settings</h1>
+    <label for="displayName">Display Name</label>
+    <input type="text" id="displayName" placeholder="Enter new display name">
+    <button onclick="updateDisplayName()">Update Display Name</button>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" placeholder="Enter new email">
+    <button onclick="updateEmail()">Update Email</button>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter new password">
+    <button onclick="updatePassword()">Update Password</button>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Update Display Name
+    function updateDisplayName() {
+      const displayName = document.getElementById("displayName").value;
+      const user = auth.currentUser;
+
+      if (user && displayName) {
+        db.ref("users/" + user.uid).update({ displayName })
+          .then(() => {
+            alert("Display name updated successfully!");
+          })
+          .catch((error) => {
+            console.error("Error updating display name:", error);
+            alert("Error updating display name. Please try again.");
+          });
+      } else {
+        alert("Please enter a display name.");
+      }
+    }
+
+    // Update Email (requires re-authentication)
+    function updateEmail() {
+      const email = document.getElementById("email").value;
+      const user = auth.currentUser;
+
+      if (user && email) {
+        user.updateEmail(email)
+          .then(() => {
+            alert("Email updated successfully!");
+          })
+          .catch((error) => {
+            if (error.code === "auth/requires-recent-login") {
+              alert("Please re-authenticate and try again.");
+              reauthenticateUser();
+            } else {
+              console.error("Error updating email:", error);
+              alert("Error updating email. Please try again.");
+            }
+          });
+      } else {
+        alert("Please enter a valid email.");
+      }
+    }
+
+    // Update Password (requires re-authentication)
+    function updatePassword() {
+      const password = document.getElementById("password").value;
+      const user = auth.currentUser;
+
+      if (user && password) {
+        user.updatePassword(password)
+          .then(() => {
+            alert("Password updated successfully!");
+          })
+          .catch((error) => {
+            if (error.code === "auth/requires-recent-login") {
+              alert("Please re-authenticate and try again.");
+              reauthenticateUser();
+            } else {
+              console.error("Error updating password:", error);
+              alert("Error updating password. Please try again.");
+            }
+          });
+      } else {
+        alert("Please enter a valid password.");
+      }
+    }
+
+    // Function to re-authenticate the user (if required for sensitive changes)
+    function reauthenticateUser() {
+      const email = prompt("Please enter your email for re-authentication:");
+      const password = prompt("Please enter your password for re-authentication:");
+      const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+
+      auth.currentUser.reauthenticateWithCredential(credential)
+        .then(() => {
+          alert("Re-authentication successful. Please proceed with your update.");
+        })
+        .catch((error) => {
+          console.error("Error re-authenticating:", error);
+          alert("Re-authentication failed. Please try again.");
+        });
+    }
+  </script>
+</body>
+</html>
