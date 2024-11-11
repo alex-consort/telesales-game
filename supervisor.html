@@ -3,137 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supervisor Dashboard - Telesales Game</title>
-  <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
+  <title>Supervisor Dashboard</title>
   <style>
+    /* Basic styling */
     body {
-      font-family: 'Calibri', sans-serif;
-      background-color: #f4f6f9;
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      color: #333;
+    }
+    h1, h2 {
       color: #274358;
-      text-align: center;
-      margin: 0;
-      padding: 0;
     }
-    .navbar {
-      background-color: #617B8F;
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-    .navbar a {
-      color: white;
-      text-decoration: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      transition: background 0.3s;
-    }
-    .navbar a:hover {
-      background-color: #FF4E59;
-    }
-    .header {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background-color: #617B8F;
-    }
-    .logo {
-      height: 50px;
-      margin-right: 20px;
-    }
-    .dashboard {
-      display: flex;
-      justify-content: space-around;
-      padding: 20px;
-      flex-wrap: wrap;
-    }
-    .card {
-      background-color: #ffffff;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 30%; 
-      margin-bottom: 20px;
-      text-align: left;
-    }
-    button {
-      padding: 10px 20px;
-      color: #fff;
-      background-color: #274358;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
+    label {
       font-weight: bold;
       margin-top: 10px;
+      display: block;
     }
-    button:hover {
-      background-color: #FF4E59;
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+      display: block;
     }
-    input {
-      width: 80%;
+    .player-list, .product-list {
+      margin-top: 20px;
+    }
+    .player-item, .product-item {
+      border: 1px solid #ddd;
       padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #97CFF3;
-      border-radius: 5px;
-      box-sizing: border-box;
+      margin: 5px 0;
+      border-radius: 4px;
     }
     .remove-button {
       background-color: #FF4E59;
-      margin-top: 10px;
+      color: white;
+      border: none;
+      padding: 5px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
+  <h1>Supervisor Dashboard</h1>
 
-  <div class="navbar">
-    <a href="profile.html">Profile</a>
-    <a href="game.html">Play Game</a>
-    <a href="achievements.html">Achievements</a>
-    <a href="settings.html">Settings</a>
-    <a href="supervisor.html">Supervisor</a>
-    <a href="logout.html">Log Out</a>
-  </div>
+  <!-- Section to update the sales objective -->
+  <h2>Update Sales Objective</h2>
+  <form onsubmit="updateObjective(); return false;">
+    <label>New Sales Objective:</label>
+    <input type="number" id="sales-objective" required>
+    <button type="submit">Update Objective</button>
+  </form>
 
-  <header class="header">
-    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
-    <h1 class="game-title">Supervisor Dashboard</h1>
-  </header>
+  <!-- Section to add a short-dated product -->
+  <h2>Add Short Dated Product</h2>
+  <form onsubmit="addShortDatedProduct(); return false;">
+    <label>Product Description:</label>
+    <input type="text" id="product-description" required>
 
-  <div class="dashboard">
-    <!-- Player List Section with Adjust Points functionality -->
-    <div class="card" id="playersCard">
-      <h2>Player List</h2>
-      <p>To adjust a player’s points, enter a positive number to add points or a negative number (e.g., -5) to deduct points, then click "Adjust Points".</p>
-      <div id="playersList"></div>
-    </div>
+    <label>Best Before Date (dd/MM/yy):</label>
+    <input type="date" id="best-before-date" required>
 
-    <!-- Product Section with Add Product functionality -->
-    <div class="card" id="productsCard">
-      <h2>Available Products</h2>
-      <div id="productList"></div>
-      <h3>Add New Product</h3>
-      <input type="text" id="productName" placeholder="Product Name">
-      <input type="number" id="productPoints" placeholder="Points">
-      <button onclick="addProduct()">Add Product</button>
-    </div>
+    <label>Reduced Price (£):</label>
+    <input type="number" id="reduced-price" step="0.01" required>
 
-    <!-- Objective Section with Add Objective functionality -->
-    <div class="card" id="objectivesCard">
-      <h2>Available Objectives</h2>
-      <div id="objectivesList"></div>
-      <h3>Add New Objective</h3>
-      <input type="text" id="objectiveName" placeholder="Objective Name">
-      <input type="number" id="objectivePoints" placeholder="Points">
-      <button onclick="addObjective()">Add Objective</button>
-    </div>
-  </div>
+    <label>Points:</label>
+    <input type="number" id="product-points" required>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <button type="submit">Add Short Dated Product</button>
+  </form>
 
-  <script>
+  <h2>Available Short Dated Products</h2>
+  <div id="shortDatedProductsList" class="product-list"></div>
+
+  <!-- Section to manage players -->
+  <h2>Manage Players</h2>
+  <div id="playersList" class="player-list"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.x/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/9.x/firebase-database.js";
+
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
@@ -146,161 +95,104 @@
     };
 
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-    // Function to add a new product
-    function addProduct() {
-      const name = document.getElementById("productName").value;
-      const points = parseInt(document.getElementById("productPoints").value, 10);
-
-      if (!name || isNaN(points)) {
-        alert("Please enter a valid product name and points.");
-        return;
-      }
-
-      db.ref("products").push({ name, points })
-        .then(() => {
-          alert("Product added successfully!");
-          document.getElementById("productName").value = "";
-          document.getElementById("productPoints").value = "";
-          fetchProducts(); // Refresh products after adding
-        })
-        .catch((error) => {
-          console.error("Error adding product:", error);
-          alert("Error adding product. Please try again.");
-        });
+    function updateObjective() {
+      const newObjective = document.getElementById("sales-objective").value;
+      set(ref(db, 'missions/salesObjective'), { value: newObjective });
+      alert("Objective updated to " + newObjective + " sales!");
     }
 
-    // Function to add a new objective
-    function addObjective() {
-      const name = document.getElementById("objectiveName").value;
-      const points = parseInt(document.getElementById("objectivePoints").value, 10);
+    function addShortDatedProduct() {
+      const description = document.getElementById("product-description").value;
+      const bestBeforeDate = document.getElementById("best-before-date").value;
+      const reducedPrice = parseFloat(document.getElementById("reduced-price").value);
+      const points = parseInt(document.getElementById("product-points").value);
 
-      if (!name || isNaN(points)) {
-        alert("Please enter a valid objective name and points.");
-        return;
-      }
-
-      db.ref("objectives").push({ name, points })
-        .then(() => {
-          alert("Objective added successfully!");
-          document.getElementById("objectiveName").value = "";
-          document.getElementById("objectivePoints").value = "";
-          fetchObjectives(); // Refresh objectives after adding
-        })
-        .catch((error) => {
-          console.error("Error adding objective:", error);
-          alert("Error adding objective. Please try again.");
-        });
-    }
-
-    // Function to adjust points for a player
-    function adjustPoints(playerId) {
-      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
-      const change = parseInt(pointsInput.value, 10) || 0;
-
-      db.ref("users/" + playerId).once("value").then((snapshot) => {
-        const currentPoints = snapshot.val().points || 0;
-        const newPoints = currentPoints + change;
-
-        db.ref("users/" + playerId).update({ points: newPoints })
-          .then(() => {
-            alert("Points adjusted successfully!");
-            fetchPlayers(); // Refresh players after adjusting points
-          })
-          .catch((error) => {
-            console.error("Error adjusting points:", error);
-            alert("Error adjusting points. Please try again.");
-          });
+      const shortDatedRef = push(ref(db, 'shortDatedProducts'));
+      set(shortDatedRef, {
+        description: description,
+        date: bestBeforeDate,
+        price: reducedPrice,
+        points: points
+      }).then(() => {
+        alert("Short dated product added successfully!");
+        document.getElementById("product-description").value = "";
+        document.getElementById("best-before-date").value = "";
+        document.getElementById("reduced-price").value = "";
+        document.getElementById("product-points").value = "";
+      }).catch((error) => {
+        console.error("Error adding short dated product:", error);
       });
     }
 
-    // Fetch functions to load data into the dashboard
-    function fetchPlayers() {
-      const playersRef = db.ref("users");
-      playersRef.on("value", (snapshot) => {
-        const playersList = document.getElementById("playersList");
-        playersList.innerHTML = "";
-
-        snapshot.forEach((childSnapshot) => {
-          const playerData = childSnapshot.val();
-          const playerId = childSnapshot.key;
-          playersList.innerHTML += `
-            <div class="card">
-              <strong>${playerData.firstName} ${playerData.lastName}</strong>
-              <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
-              <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
-              <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
-            </div>`;
-        });
-      });
-    }
-
-    function fetchProducts() {
-      const productsRef = db.ref("products");
-      productsRef.on("value", (snapshot) => {
-        const productList = document.getElementById("productList");
+    function fetchShortDatedProducts() {
+      const shortDatedProductsRef = ref(db, 'shortDatedProducts');
+      onValue(shortDatedProductsRef, (snapshot) => {
+        const products = snapshot.val();
+        const productList = document.getElementById("shortDatedProductsList");
         productList.innerHTML = "";
 
-        snapshot.forEach((childSnapshot) => {
-          const product = childSnapshot.val();
-          const productId = childSnapshot.key;
-          productList.innerHTML += `
-            <div class="card">
-              <strong>${product.name}</strong> - ${product.points} Points
-              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
-            </div>`;
-        });
+        for (const key in products) {
+          const product = products[key];
+          const productItem = document.createElement("div");
+          productItem.className = "product-item";
+          productItem.innerHTML = `
+            <strong>${product.description}</strong><br>
+            Best Before: ${new Date(product.date).toLocaleDateString("en-GB")}<br>
+            Price: £${product.price.toFixed(2)}<br>
+            Points: ${product.points}<br>
+            <button class="remove-button" onclick="removeShortDatedProduct('${key}')">Remove Product</button>
+          `;
+          productList.appendChild(productItem);
+        }
       });
     }
 
-    function fetchObjectives() {
-      const objectivesRef = db.ref("objectives");
-      objectivesRef.on("value", (snapshot) => {
-        const objectivesList = document.getElementById("objectivesList");
-        objectivesList.innerHTML = "";
-
-        snapshot.forEach((childSnapshot) => {
-          const objective = childSnapshot.val();
-          const objectiveId = childSnapshot.key;
-          objectivesList.innerHTML += `
-            <div class="card">
-              <strong>${objective.name}</strong> - ${objective.points} Points
-              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
-            </div>`;
-        });
+    function removeShortDatedProduct(productId) {
+      const productRef = ref(db, 'shortDatedProducts/' + productId);
+      remove(productRef).then(() => {
+        alert("Product removed successfully!");
+      }).catch((error) => {
+        console.error("Error removing product:", error);
       });
     }
 
-    function removeProduct(productId) {
-      db.ref("products/" + productId).remove()
-        .then(() => {
-          alert("Product removed successfully!");
-          fetchProducts();
-        })
-        .catch((error) => {
-          console.error("Error removing product:", error);
-          alert("Error removing product. Please try again.");
-        });
+    // Fetch and display players
+    function fetchPlayers() {
+      const playersRef = ref(db, 'users');
+      onValue(playersRef, (snapshot) => {
+        const players = snapshot.val();
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = ""; // Clear previous player list
+
+        for (const key in players) {
+          const player = players[key];
+          const playerItem = document.createElement("div");
+          playerItem.className = "player-item";
+          playerItem.innerHTML = `
+            <strong>${player.firstName} ${player.lastName}</strong><br>
+            Points: ${player.points}<br>
+            <button class="remove-button" onclick="removePlayer('${key}')">Remove Player</button>
+          `;
+          playersList.appendChild(playerItem);
+        }
+      });
     }
 
-    function removeObjective(objectiveId) {
-      db.ref("objectives/" + objectiveId).remove()
-        .then(() => {
-          alert("Objective removed successfully!");
-          fetchObjectives();
-        })
-        .catch((error) => {
-          console.error("Error removing objective:", error);
-          alert("Error removing objective. Please try again.");
-        });
+    function removePlayer(playerId) {
+      const playerRef = ref(db, 'users/' + playerId);
+      remove(playerRef).then(() => {
+        alert("Player removed successfully!");
+      }).catch((error) => {
+        console.error("Error removing player:", error);
+      });
     }
 
-    // Initial fetch calls
+    // Fetch data when the page loads
+    fetchShortDatedProducts();
     fetchPlayers();
-    fetchProducts();
-    fetchObjectives();
   </script>
 </body>
 </html>
