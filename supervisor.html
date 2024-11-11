@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shop - Telesales Game</title>
+  <title>Supervisor Dashboard - Telesales Game</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
-    /* Basic styling for layout */
     body {
       font-family: 'Calibri', sans-serif;
       background-color: #f4f6f9;
@@ -21,9 +20,6 @@
       display: flex;
       justify-content: center;
       gap: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
     }
     .navbar a {
       color: white;
@@ -46,70 +42,55 @@
       height: 50px;
       margin-right: 20px;
     }
-    .game-title {
-      color: #FFFFFF;
-      font-size: 1.8em;
-      font-weight: bold;
-    }
-    .shop-container {
-      max-width: 800px;
-      margin: 20px auto;
+    .dashboard {
+      display: flex;
+      justify-content: space-around;
       padding: 20px;
+      flex-wrap: wrap;
+    }
+    .card {
       background-color: #ffffff;
       border-radius: 8px;
+      padding: 20px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      width: 30%; 
+      margin-bottom: 20px;
+      text-align: left;
     }
-    .points-display {
-      font-size: 1.2em;
-      color: #617B8F;
-      margin: 10px 0;
-    }
-    .item-card {
-      background-color: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-      max-width: 250px;
-    }
-    .item-name {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #274358;
-      margin-bottom: 10px;
-    }
-    .item-details {
-      font-size: 0.9em;
-      color: #617B8F;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .item-button {
-      padding: 10px;
+    button {
+      padding: 10px 20px;
       color: #fff;
       background-color: #274358;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       font-weight: bold;
-      transition: background 0.3s;
+      margin-top: 10px;
     }
-    .item-button:hover {
+    button:hover {
       background-color: #FF4E59;
     }
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-      justify-items: center;
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      box-sizing: border-box;
     }
-    .history-section {
-      margin-top: 30px;
-      text-align: left;
+    .remove-button {
+      background-color: #FF4E59;
+      margin-top: 10px;
+    }
+    .redemption-table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+    }
+    .redemption-table th, .redemption-table td {
+      border: 1px solid #97CFF3;
+      padding: 8px;
+      text-align: center;
     }
   </style>
 </head>
@@ -117,39 +98,90 @@
 
   <div class="navbar">
     <a href="profile.html">Profile</a>
-    <a href="dashboard.html">Dashboard</a>
     <a href="game.html">Play Game</a>
     <a href="shop.html">Shop</a>
     <a href="achievements.html">Achievements</a>
     <a href="settings.html">Settings</a>
+    <a href="supervisor.html">Supervisor</a>
     <a href="logout.html">Log Out</a>
   </div>
 
   <header class="header">
     <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
-    <h1 class="game-title">Telesales Game - Shop</h1>
+    <h1 class="game-title">Supervisor Dashboard</h1>
   </header>
 
-  <div class="shop-container">
-    <p class="points-display">Your Points: <span id="userPoints">Loading...</span></p>
-    
-    <!-- Redemption Items -->
-    <div class="grid-container" id="shopItems">
-      <!-- Shop items are populated here -->
+  <div class="dashboard">
+    <!-- Player List Section with Adjust Points functionality -->
+    <div class="card" id="playersCard">
+      <h2>Player List</h2>
+      <p>To adjust a player’s points, enter a positive number to add points or a negative number (e.g., -5) to deduct points, then click "Adjust Points".</p>
+      <div id="playersList"></div>
     </div>
 
-    <!-- Purchase History Section -->
-    <div class="history-section">
-      <h3>Redemption History</h3>
-      <ul id="purchaseHistory">
-        <!-- Purchase history items are populated here -->
-      </ul>
+    <!-- Product Section with Add Product functionality -->
+    <div class="card" id="productsCard">
+      <h2>Available Products</h2>
+      <div id="productList"></div>
+      <h3>Add New Product</h3>
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="number" id="productPoints" placeholder="Points">
+      <button onclick="addProduct()">Add Product</button>
+    </div>
+
+    <!-- Objective Section with Add Objective functionality -->
+    <div class="card" id="objectivesCard">
+      <h2>Available Objectives</h2>
+      <div id="objectivesList"></div>
+      <h3>Add New Objective</h3>
+      <input type="text" id="objectiveName" placeholder="Objective Name">
+      <input type="number" id="objectivePoints" placeholder="Points">
+      <button onclick="addObjective()">Add Objective</button>
+    </div>
+
+    <!-- Short Dated Product Section -->
+    <div class="card" id="shortDatedCard">
+      <h2>Available Short Dated Products</h2>
+      <div id="shortDatedProductsList"></div>
+      <h3>Add New Short Dated Product</h3>
+      <input type="text" id="shortDatedDescription" placeholder="Product Description">
+      <input type="date" id="bestBeforeDate" placeholder="Best Before Date (dd/MM/yy)">
+      <input type="number" id="reducedPrice" placeholder="Reduced Price (£)" step="0.01">
+      <input type="number" id="shortDatedPoints" placeholder="Points">
+      <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
+    </div>
+
+    <!-- Shop Item Management Section -->
+    <div class="card" id="shopItemsCard">
+      <h2>Available Shop Items</h2>
+      <div id="shopItemsList"></div>
+      <h3>Add New Shop Item</h3>
+      <input type="text" id="shopItemName" placeholder="Item Name">
+      <input type="number" id="shopItemPoints" placeholder="Points Required">
+      <button onclick="addShopItem()">Add Shop Item</button>
+    </div>
+
+    <!-- Redemption Requests Section -->
+    <div class="card" id="redemptionsCard">
+      <h2>Redemption Requests</h2>
+      <table class="redemption-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Item</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="redemptionList">
+          <!-- Redemption rows will be populated here by JavaScript -->
+        </tbody>
+      </table>
     </div>
   </div>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
   <script>
@@ -165,121 +197,144 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const auth = firebase.auth();
 
-    let currentPoints = 0;
-    let userFirstName = "User";
-    let userLastName = "";
+    function fetchPlayers() {
+      const playersRef = db.ref("users");
+      playersRef.on("value", (snapshot) => {
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = "";
 
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        console.log("User authenticated:", user.uid);
-
-        // Fetch user's points
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        userPointsRef.on("value", (snapshot) => {
-          currentPoints = snapshot.val() || 0;
-          console.log("Fetched user points:", currentPoints);
-          document.getElementById("userPoints").innerText = currentPoints;
+        snapshot.forEach((childSnapshot) => {
+          const playerData = childSnapshot.val();
+          const playerId = childSnapshot.key;
+          playersList.innerHTML += `
+            <div class="card">
+              <strong>${playerData.firstName || "Unknown"} ${playerData.lastName || ""}</strong>
+              <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
+              <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
+              <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
+            </div>`;
         });
+      });
+    }
 
-        // Fetch user profile details (first name and last name)
-        db.ref("users/" + user.uid).once("value").then((snapshot) => {
-          const userData = snapshot.val();
-          userFirstName = userData.firstName || "User";
-          userLastName = userData.lastName || "";
-          console.log("Fetched user details:", userFirstName, userLastName);
-        }).catch((error) => console.error("Error fetching user details:", error));
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
 
-        fetchShopItems();
-        fetchPurchaseHistory();
-      } else {
-        console.log("User not authenticated, redirecting to login.");
-        window.location.href = "login.html";
-      }
-    });
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div class="card">
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
+
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectivesList = document.getElementById("objectivesList");
+        objectivesList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const objective = childSnapshot.val();
+          const objectiveId = childSnapshot.key;
+          objectivesList.innerHTML += `
+            <div class="card">
+              <strong>${objective.name}</strong> - ${objective.points} Points
+              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+            </div>`;
+        });
+      });
+    }
+
+    function fetchShortDatedProducts() {
+      const shortDatedProductsRef = db.ref("shortDatedProducts");
+      shortDatedProductsRef.on("value", (snapshot) => {
+        const shortDatedProductsList = document.getElementById("shortDatedProductsList");
+        shortDatedProductsList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          shortDatedProductsList.innerHTML += `
+            <div class="card">
+              <strong>${product.description}</strong><br>
+              Best Before: ${product.bestBeforeDate}<br>
+              Price: £${product.price}<br>
+              Points: ${product.points}<br>
+              <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
 
     function fetchShopItems() {
       const shopItemsRef = db.ref("shopItems");
-      const shopItemsDiv = document.getElementById("shopItems");
-      shopItemsDiv.innerHTML = "";
       shopItemsRef.on("value", (snapshot) => {
-        console.log("Fetching shop items...");
+        const shopItemsList = document.getElementById("shopItemsList");
+        shopItemsList.innerHTML = "";
+
         snapshot.forEach((childSnapshot) => {
           const item = childSnapshot.val();
           const itemId = childSnapshot.key;
-          const itemCard = document.createElement("div");
-          itemCard.className = "item-card";
-          itemCard.innerHTML = `
-            <div class="item-name">${item.name}</div>
-            <div class="item-details">Points Required: ${item.pointsRequired}</div>
-            <button class="item-button" onclick="redeemItem('${itemId}', ${item.pointsRequired}, '${item.name}')">Redeem</button>
-          `;
-          shopItemsDiv.appendChild(itemCard);
-          console.log("Shop item added:", item);
+          shopItemsList.innerHTML += `
+            <div class="card">
+              <strong>${item.name}</strong> - ${item.pointsRequired} Points
+              <button class="remove-button" onclick="removeShopItem('${itemId}')">Remove Item</button>
+            </div>`;
         });
-      }, (error) => console.error("Error fetching shop items:", error));
+      });
     }
 
-    function redeemItem(itemId, pointsRequired, itemName) {
-      if (currentPoints < pointsRequired) {
-        alert("Not enough points to redeem this item.");
-        return;
-      }
-      if (confirm(`Are you sure you want to redeem "${itemName}" for ${pointsRequired} points?`)) {
-        processRedemption(itemId, pointsRequired, itemName);
-      }
-    }
-
-    function processRedemption(itemId, pointsRequired, itemName) {
-      const user = auth.currentUser;
-      const userPointsRef = db.ref("users/" + user.uid + "/points");
-      const purchasesRef = db.ref("purchases");
-
-      userPointsRef.transaction((currentPoints) => {
-        if (currentPoints >= pointsRequired) {
-          return currentPoints - pointsRequired;
-        } else {
-          alert("Not enough points!");
-          return;
-        }
-      }).then(() => {
-        console.log("Points updated successfully.");
-        // Record the purchase in Firebase including user's first and last name
-        purchasesRef.push({
-          userId: user.uid,
-          firstName: userFirstName,
-          lastName: userLastName,
-          itemId: itemId,
-          itemName: itemName,
-          pointsSpent: pointsRequired,
-          status: "Pending",
-          purchaseDate: new Date().toISOString()
-        });
-        alert("Redemption successful!");
-      }).catch((error) => console.error("Redemption failed:", error));
-    }
-
-    function fetchPurchaseHistory() {
-      const purchasesRef = db.ref("purchases");
-      purchasesRef.orderByChild("userId").equalTo(auth.currentUser.uid).on("value", (snapshot) => {
-        const purchaseHistory = document.getElementById("purchaseHistory");
-        purchaseHistory.innerHTML = "";
+    function fetchRedemptions() {
+      const redemptionsRef = db.ref("purchases");
+      redemptionsRef.on("value", (snapshot) => {
+        const redemptionList = document.getElementById("redemptionList");
+        redemptionList.innerHTML = "";
 
         snapshot.forEach((childSnapshot) => {
-          const purchase = childSnapshot.val();
-          const formattedDate = new Date(purchase.purchaseDate).toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric"
-          });
-          purchaseHistory.innerHTML += `
-            <li>${purchase.itemName} - ${purchase.pointsSpent} Points (Redeemed on ${formattedDate})</li>
-          `;
-          console.log("Purchase history item added:", purchase);
+          const redemption = childSnapshot.val();
+          const redemptionId = childSnapshot.key;
+
+          redemptionList.innerHTML += `
+            <tr>
+              <td>${redemption.firstName || "Unknown"} ${redemption.lastName || ""}</td>
+              <td>${redemption.itemName}</td>
+              <td>${redemption.status || "Pending"}</td>
+              <td>
+                <button onclick="markComplete('${redemptionId}')">Complete</button>
+                <button onclick="removeRedemption('${redemptionId}')">Remove</button>
+              </td>
+            </tr>`;
         });
-      }, (error) => console.error("Error fetching purchase history:", error));
+      });
     }
+
+    function markComplete(redemptionId) {
+      db.ref("purchases/" + redemptionId).update({ status: "Completed" }).then(() => {
+        alert("Redemption marked as complete!");
+      });
+    }
+
+    function removeRedemption(redemptionId) {
+      db.ref("purchases/" + redemptionId).remove().then(() => {
+        alert("Redemption removed successfully!");
+      });
+    }
+
+    fetchPlayers();
+    fetchProducts();
+    fetchObjectives();
+    fetchShortDatedProducts();
+    fetchShopItems();
+    fetchRedemptions();
   </script>
 </body>
 </html>
