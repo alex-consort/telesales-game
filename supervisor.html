@@ -6,12 +6,86 @@
   <title>Supervisor Dashboard - Telesales Game</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
-    /* Add styles as per your design here */
+    body {
+      font-family: 'Calibri', sans-serif;
+      background-color: #f4f6f9;
+      color: #274358;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar {
+      background-color: #617B8F;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .navbar a:hover {
+      background-color: #FF4E59;
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: #617B8F;
+    }
+    .logo {
+      height: 50px;
+      margin-right: 20px;
+    }
+    .dashboard {
+      display: flex;
+      justify-content: space-around;
+      padding: 20px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      width: 30%; 
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    button {
+      padding: 10px 20px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #FF4E59;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    .remove-button {
+      background-color: #FF4E59;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Supervisor Dashboard Structure -->
   <div class="navbar">
     <a href="profile.html">Profile</a>
     <a href="game.html">Play Game</a>
@@ -31,19 +105,19 @@
     <!-- Player List Section -->
     <div class="card" id="playersCard">
       <h2>Player List</h2>
-      <div id="playersList"></div>
+      <div id="playersList">Loading...</div>
     </div>
 
     <!-- Products Section -->
     <div class="card" id="productsCard">
       <h2>Available Products</h2>
-      <div id="productList"></div>
+      <div id="productList">Loading...</div>
     </div>
 
     <!-- Shop Items Section -->
     <div class="card" id="shopItemsCard">
       <h2>Shop Items</h2>
-      <div id="shopItemsList"></div>
+      <div id="shopItemsList">Loading...</div>
       <input type="text" id="shopItemName" placeholder="Shop Item Name">
       <input type="number" id="shopItemPoints" placeholder="Points Required">
       <button onclick="addShopItem()">Add Shop Item</button>
@@ -62,11 +136,10 @@
             <th>Actions</th>
           </tr>
         </thead>
-        <tbody id="redeemedItemsList"></tbody>
+        <tbody id="redeemedItemsList">Loading...</tbody>
       </table>
     </div>
 
-    <!-- Add other sections like objectives and short-dated products -->
   </div>
 
   <!-- Firebase SDKs -->
@@ -88,7 +161,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fetch all necessary data from Firebase
+    // Fetch Players Data
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
@@ -106,22 +179,7 @@
       }, (error) => console.error("Error fetching players:", error));
     }
 
-    function fetchProducts() {
-      const productsRef = db.ref("products");
-      productsRef.on("value", (snapshot) => {
-        const productList = document.getElementById("productList");
-        productList.innerHTML = "";
-        snapshot.forEach((childSnapshot) => {
-          const product = childSnapshot.val();
-          const productId = childSnapshot.key;
-          productList.innerHTML += `
-            <div class="card">
-              <strong>${product.name}</strong> - ${product.points} Points
-            </div>`;
-        });
-      }, (error) => console.error("Error fetching products:", error));
-    }
-
+    // Fetch Shop Items
     function fetchShopItems() {
       const shopItemsRef = db.ref("shopItems");
       shopItemsRef.on("value", (snapshot) => {
@@ -139,6 +197,7 @@
       }, (error) => console.error("Error fetching shop items:", error));
     }
 
+    // Fetch Redeemed Shop Items
     function fetchRedeemedItems() {
       const redeemedItemsRef = db.ref("purchases");
       redeemedItemsRef.on("value", (snapshot) => {
@@ -169,11 +228,31 @@
       }, (error) => console.error("Error fetching redeemed items:", error));
     }
 
-    // Ensure data is being fetched on page load
+    // Add Shop Item Function
+    function addShopItem() {
+      const name = document.getElementById("shopItemName").value;
+      const pointsRequired = parseInt(document.getElementById("shopItemPoints").value, 10);
+
+      if (!name || isNaN(pointsRequired)) {
+        alert("Please enter valid shop item details.");
+        return;
+      }
+
+      db.ref("shopItems").push({ name, pointsRequired })
+        .then(() => {
+          alert("Shop item added successfully!");
+          document.getElementById("shopItemName").value = "";
+          document.getElementById("shopItemPoints").value = "";
+          fetchShopItems();
+        })
+        .catch((error) => console.error("Error adding shop item:", error));
+    }
+
+    // Initial Fetching
     fetchPlayers();
-    fetchProducts();
     fetchShopItems();
     fetchRedeemedItems();
   </script>
+
 </body>
 </html>
