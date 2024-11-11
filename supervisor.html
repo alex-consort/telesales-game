@@ -82,6 +82,10 @@
       background-color: #FF4E59;
       margin-top: 10px;
     }
+    .complete-button {
+      background-color: #4CAF50;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -129,6 +133,12 @@
       <button onclick="addShopItem()">Add Shop Item</button>
     </div>
 
+    <!-- Redeemed Shop Items Section -->
+    <div class="card" id="redeemedItemsCard">
+      <h2>Redeemed Shop Items</h2>
+      <div id="redeemedItemsList"></div>
+    </div>
+
     <!-- Objective Section with Add Objective functionality -->
     <div class="card" id="objectivesCard">
       <h2>Available Objectives</h2>
@@ -172,7 +182,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fetch Players, Products, Objectives, and Short Dated Products from Firebase
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
@@ -209,7 +218,6 @@
       }, (error) => console.error("Error fetching products:", error));
     }
 
-    // Fetch Shop Items
     function fetchShopItems() {
       const shopItemsRef = db.ref("shopItems");
       shopItemsRef.on("value", (snapshot) => {
@@ -227,7 +235,31 @@
       }, (error) => console.error("Error fetching shop items:", error));
     }
 
-    // Add Shop Item
+    function fetchRedeemedItems() {
+      const redeemedItemsRef = db.ref("purchases");
+      redeemedItemsRef.on("value", (snapshot) => {
+        const redeemedItemsList = document.getElementById("redeemedItemsList");
+        redeemedItemsList.innerHTML = "";
+        snapshot.forEach((childSnapshot) => {
+          const redemption = childSnapshot.val();
+          const userId = redemption.userId;
+          const itemName = redemption.itemName;
+          const status = redemption.status || "Pending";
+          const userRef = db.ref("users/" + userId);
+          userRef.once("value", (userSnapshot) => {
+            const userData = userSnapshot.val();
+            const userName = `${userData.firstName} ${userData.lastName}`;
+            redeemedItemsList.innerHTML += `
+              <div class="card">
+                <strong>${userName}</strong> - ${itemName} - ${status}
+                <button class="complete-button" onclick="completeRedemption('${childSnapshot.key}')">Complete</button>
+                <button class="remove-button" onclick="removeRedemption('${childSnapshot.key}')">Remove</button>
+              </div>`;
+          });
+        });
+      }, (error) => console.error("Error fetching redeemed items:", error));
+    }
+
     function addShopItem() {
       const name = document.getElementById("shopItemName").value;
       const pointsRequired = parseInt(document.getElementById("shopItemPoints").value, 10);
@@ -247,7 +279,6 @@
         .catch((error) => console.error("Error adding shop item:", error));
     }
 
-    // Remove Shop Item
     function removeShopItem(itemId) {
       db.ref("shopItems/" + itemId).remove()
         .then(() => {
@@ -255,6 +286,24 @@
           fetchShopItems();
         })
         .catch((error) => console.error("Error removing shop item:", error));
+    }
+
+    function completeRedemption(redemptionId) {
+      db.ref("purchases/" + redemptionId).update({ status: "Completed" })
+        .then(() => {
+          alert("Redemption completed!");
+          fetchRedeemedItems();
+        })
+        .catch((error) => console.error("Error completing redemption:", error));
+    }
+
+    function removeRedemption(redemptionId) {
+      db.ref("purchases/" + redemptionId).remove()
+        .then(() => {
+          alert("Redemption removed!");
+          fetchRedeemedItems();
+        })
+        .catch((error) => console.error("Error removing redemption:", error));
     }
 
     function adjustPoints(playerId) {
@@ -278,6 +327,7 @@
     fetchPlayers();
     fetchProducts();
     fetchShopItems();
+    fetchRedeemedItems();
   </script>
 </body>
 </html>
