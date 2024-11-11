@@ -105,13 +105,6 @@
     .item-button:hover {
       background-color: #FF4E59;
     }
-    /* Grid Layout */
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-      justify-items: center;
-    }
   </style>
 </head>
 <body>
@@ -135,21 +128,15 @@
     
     <!-- Available Products Section -->
     <h3>Available Products</h3>
-    <div class="grid-container" id="productList">
-      <!-- Product cards will be populated here -->
-    </div>
+    <div class="product-list" id="productList"></div>
 
     <!-- Available Short-Dated Products Section -->
     <h3>Available Short-Dated Products</h3>
-    <div class="grid-container" id="shortDatedList">
-      <!-- Short-dated product cards will be populated here -->
-    </div>
+    <div class="short-dated-list" id="shortDatedList"></div>
 
     <!-- Available Objectives Section -->
     <h3>Available Objectives</h3>
-    <div class="grid-container" id="objectiveList">
-      <!-- Objective cards will be populated here -->
-    </div>
+    <div class="objective-list" id="objectiveList"></div>
   </div>
 
   <!-- Load Firebase SDKs from CDN -->
@@ -158,7 +145,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
@@ -177,7 +163,6 @@
 
     let currentPoints = 0;
 
-    // Listen for changes to the user's points in Firebase
     auth.onAuthStateChanged((user) => {
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
@@ -185,8 +170,8 @@
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
         });
-
-        // Fetch all items available in the game
+        
+        // Fetch game items and track achievements
         fetchProducts();
         fetchShortDatedProducts();
         fetchObjectives();
@@ -195,99 +180,39 @@
       }
     });
 
-    // Function to fetch products
-    function fetchProducts() {
-      const productsRef = db.ref("products");
-      productsRef.on("value", (snapshot) => {
-        const products = snapshot.val();
-        const productList = document.getElementById("productList");
-        productList.innerHTML = ""; // Clear previous products
-
-        for (const key in products) {
-          const product = products[key];
-          const productCard = document.createElement("div");
-          productCard.className = "item-card";
-          productCard.innerHTML = `
-            <div class="item-name">${product.name}</div>
-            <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
-          `;
-          productList.appendChild(productCard);
+    function checkAchievements(uid, achievementId, title, description, icon) {
+      const achievementsRef = db.ref("users/" + uid + "/achievements/" + achievementId);
+      achievementsRef.once("value", (snapshot) => {
+        if (!snapshot.exists()) {
+          achievementsRef.set({ title, description, icon });
+          alert(`Achievement unlocked: ${title}`);
         }
       });
     }
 
-    // Function to fetch short-dated products with metadata (price, formatted date)
-    function fetchShortDatedProducts() {
-      const shortDatedRef = db.ref("shortDatedProducts");
-      shortDatedRef.on("value", (snapshot) => {
-        const shortDatedProducts = snapshot.val();
-        const shortDatedList = document.getElementById("shortDatedList");
-        shortDatedList.innerHTML = ""; // Clear previous short-dated products
-
-        for (const key in shortDatedProducts) {
-          const product = shortDatedProducts[key];
-          
-          // Format date to dd/MM/yy
-          const date = new Date(product.date);
-          const formattedDate = date.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "2-digit"
-          });
-
-          const shortDatedCard = document.createElement("div");
-          shortDatedCard.className = "item-card";
-          shortDatedCard.innerHTML = `
-            <div class="item-name">${product.description}</div>
-            <div class="item-details">Price: £${product.price.toFixed(2)}</div>
-            <div class="item-details">Expiry Date: ${formattedDate}</div>
-            <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
-          `;
-          shortDatedList.appendChild(shortDatedCard);
-        }
-      });
+    function awardAchievements(user, pointsEarned) {
+      if (pointsEarned >= 100) {
+        checkAchievements(user.uid, "pointPro", "Point Pro", "Earned 100 points in a single session.", "path/to/pointProBadge.png");
+      }
+      if (currentPoints >= 500) {
+        checkAchievements(user.uid, "highRoller", "High Roller", "Reached 500 points in total.", "path/to/highRollerBadge.png");
+      }
+      if (new Date().getHours() < 8) {
+        checkAchievements(user.uid, "earlyBird", "Early Bird", "Logged in before 8 am.", "path/to/earlyBirdBadge.png");
+      }
     }
 
-    // Function to fetch objectives
-    function fetchObjectives() {
-      const objectivesRef = db.ref("objectives");
-      objectivesRef.on("value", (snapshot) => {
-        const objectives = snapshot.val();
-        const objectiveList = document.getElementById("objectiveList");
-        objectiveList.innerHTML = ""; // Clear previous objectives
-
-        for (const key in objectives) {
-          const objective = objectives[key];
-          const objectiveCard = document.createElement("div");
-          objectiveCard.className = "item-card";
-          objectiveCard.innerHTML = `
-            <div class="item-name">${objective.name}</div>
-            <div class="item-details">${objective.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${objective.points})">Earn Points</button>
-          `;
-          objectiveList.appendChild(objectiveCard);
-        }
-      });
-    }
-
-    // Function to earn points from an item
     function earnPoints(points) {
       const user = auth.currentUser;
-
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
         userPointsRef.once("value").then((snapshot) => {
           const currentUserPoints = snapshot.val() || 0;
           const newTotalPoints = currentUserPoints + points;
-
-          userPointsRef.set(newTotalPoints)
-            .then(() => {
-              alert(`You earned ${points} points!`);
-              document.getElementById("points").innerText = newTotalPoints;
-            })
-            .catch(error => console.error("Error updating points:", error));
+          userPointsRef.set(newTotalPoints).then(() => {
+            document.getElementById("points").innerText = newTotalPoints;
+            awardAchievements(user, points);  // Check for achievements
+          });
         });
       } else {
         alert("You need to be logged in to earn points.");
