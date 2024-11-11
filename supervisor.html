@@ -295,23 +295,23 @@
     }
 
     function fetchRedemptions() {
-      const redemptionsRef = db.ref("redemptions");
-      redemptionsRef.on("value", (snapshot) => {
+      const purchasesRef = db.ref("purchases");
+      purchasesRef.on("value", (snapshot) => {
         const redemptionList = document.getElementById("redemptionList");
         redemptionList.innerHTML = "";
 
         snapshot.forEach((childSnapshot) => {
-          const redemption = childSnapshot.val();
-          const redemptionId = childSnapshot.key;
+          const purchase = childSnapshot.val();
+          const purchaseId = childSnapshot.key;
 
           redemptionList.innerHTML += `
             <tr>
-              <td>${redemption.userName}</td>
-              <td>${redemption.itemName}</td>
-              <td>${redemption.status}</td>
+              <td>${purchase.firstName} ${purchase.lastName}</td>
+              <td>${purchase.itemName}</td>
+              <td>${purchase.status}</td>
               <td>
-                <button onclick="markComplete('${redemptionId}')">Complete</button>
-                <button onclick="removeRedemption('${redemptionId}')">Remove</button>
+                <button onclick="markComplete('${purchaseId}')">Complete</button>
+                <button onclick="removeRedemption('${purchaseId}')">Remove</button>
               </td>
             </tr>`;
         });
@@ -423,8 +423,8 @@
       });
     }
 
-    function removeRedemption(redemptionId) {
-      db.ref("redemptions/" + redemptionId).remove().then(() => {
+    function removeRedemption(purchaseId) {
+      db.ref("purchases/" + purchaseId).remove().then(() => {
         alert("Redemption removed successfully!");
         fetchRedemptions();
       });
@@ -445,8 +445,8 @@
       });
     }
 
-    function markComplete(redemptionId) {
-      db.ref("redemptions/" + redemptionId).update({ status: "Completed" }).then(() => {
+    function markComplete(purchaseId) {
+      db.ref("purchases/" + purchaseId).update({ status: "Completed" }).then(() => {
         alert("Redemption marked as complete!");
         fetchRedemptions();
       });
