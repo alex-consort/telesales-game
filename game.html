@@ -212,7 +212,11 @@
 
         for (const key in shortDatedProducts) {
           const product = shortDatedProducts[key];
-          const formattedDate = new Date(product.date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" });
+          // Parse date to handle dd/MM/yy format properly
+          const dateParts = product.bestBeforeDate.split("-");
+          const formattedDate = dateParts.length === 3 
+            ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0].slice(-2)}` // Ensures dd/MM/yy format
+            : "Invalid Date";
 
           const shortDatedCard = document.createElement("div");
           shortDatedCard.className = "item-card";
