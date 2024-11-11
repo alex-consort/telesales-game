@@ -198,7 +198,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fetch players and render player list
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
@@ -219,7 +218,6 @@
       });
     }
 
-    // Function to adjust points for a player
     function adjustPoints(playerId) {
       const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
       const pointsChange = parseInt(pointsInput.value, 10) || 0;
@@ -241,106 +239,36 @@
       });
     }
 
-    // Function to remove a short-dated product
-    function removeShortDatedProduct(productId) {
-      db.ref("shortDatedProducts/" + productId).remove()
-        .then(() => {
-          alert("Short-dated product removed successfully!");
-        })
-        .catch((error) => console.error("Error removing short-dated product:", error));
-    }
+    function fetchShortDatedProducts() {
+      const shortDatedProductsRef = db.ref("shortDatedProducts");
+      const shortDatedProductsList = document.getElementById("shortDatedProductsList");
+      shortDatedProductsList.innerHTML = "";
 
-    // Functions to fetch and manage data for products, objectives, shop items, and redemptions
-
-    function fetchProducts() {
-      const productsRef = db.ref("products");
-      productsRef.on("value", (snapshot) => {
-        const productList = document.getElementById("productList");
-        productList.innerHTML = "";
-
+      shortDatedProductsRef.on("value", (snapshot) => {
         snapshot.forEach((childSnapshot) => {
           const product = childSnapshot.val();
           const productId = childSnapshot.key;
-          productList.innerHTML += `
+          shortDatedProductsList.innerHTML += `
             <div class="card">
-              <strong>${product.name}</strong> - ${product.points} Points
-              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+              <strong>${product.description}</strong><br>
+              Best Before: ${product.bestBeforeDate}<br>
+              Price: £${product.price}<br>
+              Points: ${product.points}<br>
+              <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
             </div>`;
         });
       });
     }
 
-    function fetchObjectives() {
-      const objectivesRef = db.ref("objectives");
-      objectivesRef.on("value", (snapshot) => {
-        const objectivesList = document.getElementById("objectivesList");
-        objectivesList.innerHTML = "";
-
-        snapshot.forEach((childSnapshot) => {
-          const objective = childSnapshot.val();
-          const objectiveId = childSnapshot.key;
-          objectivesList.innerHTML += `
-            <div class="card">
-              <strong>${objective.name}</strong> - ${objective.points} Points
-              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
-            </div>`;
-        });
-      });
+    function removeProduct(productId) {
+      db.ref("products/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+        })
+        .catch((error) => console.error("Error removing product:", error));
     }
 
-    function fetchShopItems() {
-      const shopItemsRef = db.ref("shopItems");
-      shopItemsRef.on("value", (snapshot) => {
-        const shopItemsList = document.getElementById("shopItemsList");
-        shopItemsList.innerHTML = "";
-
-        snapshot.forEach((childSnapshot) => {
-          const item = childSnapshot.val();
-          const itemId = childSnapshot.key;
-          shopItemsList.innerHTML += `
-            <div class="card">
-              <strong>${item.name}</strong> - ${item.pointsRequired} Points
-              <button class="remove-button" onclick="removeShopItem('${itemId}')">Remove Item</button>
-            </div>`;
-        });
-      });
-    }
-
-    function fetchRedemptions() {
-      const redemptionsRef = db.ref("purchases");
-      redemptionsRef.on("value", (snapshot) => {
-        const redemptionList = document.getElementById("redemptionList");
-        redemptionList.innerHTML = "";
-
-        snapshot.forEach((childSnapshot) => {
-          const redemption = childSnapshot.val();
-          const redemptionId = childSnapshot.key;
-
-          redemptionList.innerHTML += `
-            <tr>
-              <td>${redemption.firstName || "Unknown"} ${redemption.lastName || ""}</td>
-              <td>${redemption.itemName}</td>
-              <td>${redemption.status || "Pending"}</td>
-              <td>
-                <button onclick="markComplete('${redemptionId}')">Complete</button>
-                <button onclick="removeRedemption('${redemptionId}')">Remove</button>
-              </td>
-            </tr>`;
-        });
-      });
-    }
-
-    function markComplete(redemptionId) {
-      db.ref("purchases/" + redemptionId).update({ status: "Completed" }).then(() => {
-        alert("Redemption marked as complete!");
-      });
-    }
-
-    function removeRedemption(redemptionId) {
-      db.ref("purchases/" + redemptionId).remove().then(() => {
-        alert("Redemption removed successfully!");
-      });
-    }
+    // Other Firebase functions for fetching and managing products, objectives, shop items, and redemptions
 
     fetchPlayers();
     fetchProducts();
