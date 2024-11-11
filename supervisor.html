@@ -119,6 +119,16 @@
       <button onclick="addProduct()">Add Product</button>
     </div>
 
+    <!-- Shopkeeper Section for Adding/Removing Shop Items -->
+    <div class="card" id="shopItemsCard">
+      <h2>Shop Items</h2>
+      <div id="shopItemsList"></div>
+      <h3>Add New Shop Item</h3>
+      <input type="text" id="shopItemName" placeholder="Shop Item Name">
+      <input type="number" id="shopItemPoints" placeholder="Points Required">
+      <button onclick="addShopItem()">Add Shop Item</button>
+    </div>
+
     <!-- Objective Section with Add Objective functionality -->
     <div class="card" id="objectivesCard">
       <h2>Available Objectives</h2>
@@ -162,12 +172,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Fetch Players, Products, Objectives, and Short Dated Products from Firebase
     function fetchPlayers() {
       const playersRef = db.ref("users");
       playersRef.on("value", (snapshot) => {
         const playersList = document.getElementById("playersList");
         playersList.innerHTML = "";
-
         snapshot.forEach((childSnapshot) => {
           const playerData = childSnapshot.val();
           const playerId = childSnapshot.key;
@@ -187,7 +197,6 @@
       productsRef.on("value", (snapshot) => {
         const productList = document.getElementById("productList");
         productList.innerHTML = "";
-
         snapshot.forEach((childSnapshot) => {
           const product = childSnapshot.val();
           const productId = childSnapshot.key;
@@ -200,136 +209,52 @@
       }, (error) => console.error("Error fetching products:", error));
     }
 
-    function fetchObjectives() {
-      const objectivesRef = db.ref("objectives");
-      objectivesRef.on("value", (snapshot) => {
-        const objectivesList = document.getElementById("objectivesList");
-        objectivesList.innerHTML = "";
-
+    // Fetch Shop Items
+    function fetchShopItems() {
+      const shopItemsRef = db.ref("shopItems");
+      shopItemsRef.on("value", (snapshot) => {
+        const shopItemsList = document.getElementById("shopItemsList");
+        shopItemsList.innerHTML = "";
         snapshot.forEach((childSnapshot) => {
-          const objective = childSnapshot.val();
-          const objectiveId = childSnapshot.key;
-          objectivesList.innerHTML += `
+          const item = childSnapshot.val();
+          const itemId = childSnapshot.key;
+          shopItemsList.innerHTML += `
             <div class="card">
-              <strong>${objective.name}</strong> - ${objective.points} Points
-              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+              <strong>${item.name}</strong> - ${item.pointsRequired} Points
+              <button class="remove-button" onclick="removeShopItem('${itemId}')">Remove Shop Item</button>
             </div>`;
         });
-      }, (error) => console.error("Error fetching objectives:", error));
+      }, (error) => console.error("Error fetching shop items:", error));
     }
 
-    function fetchShortDatedProducts() {
-      const shortDatedProductsRef = db.ref("shortDatedProducts");
-      shortDatedProductsRef.on("value", (snapshot) => {
-        const shortDatedProductsList = document.getElementById("shortDatedProductsList");
-        shortDatedProductsList.innerHTML = "";
+    // Add Shop Item
+    function addShopItem() {
+      const name = document.getElementById("shopItemName").value;
+      const pointsRequired = parseInt(document.getElementById("shopItemPoints").value, 10);
 
-        snapshot.forEach((childSnapshot) => {
-          const product = childSnapshot.val();
-          const productId = childSnapshot.key;
-          const bestBeforeDateFormatted = new Date(product.bestBeforeDate).toLocaleDateString("en-GB");
-
-          shortDatedProductsList.innerHTML += `
-            <div class="card">
-              <strong>${product.description}</strong><br>
-              Best Before: ${bestBeforeDateFormatted}<br>
-              Price: £${product.price.toFixed(2)}<br>
-              Points: ${product.points}<br>
-              <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
-            </div>`;
-        });
-      }, (error) => console.error("Error fetching short dated products:", error));
-    }
-
-    function addProduct() {
-      const name = document.getElementById("productName").value;
-      const points = parseInt(document.getElementById("productPoints").value, 10);
-
-      if (!name || isNaN(points)) {
-        alert("Please enter a valid product name and points.");
+      if (!name || isNaN(pointsRequired)) {
+        alert("Please enter a valid shop item name and points.");
         return;
       }
 
-      db.ref("products").push({ name, points })
+      db.ref("shopItems").push({ name, pointsRequired })
         .then(() => {
-          alert("Product added successfully!");
-          document.getElementById("productName").value = "";
-          document.getElementById("productPoints").value = "";
-          fetchProducts();
+          alert("Shop item added successfully!");
+          document.getElementById("shopItemName").value = "";
+          document.getElementById("shopItemPoints").value = "";
+          fetchShopItems();
         })
-        .catch((error) => console.error("Error adding product:", error));
+        .catch((error) => console.error("Error adding shop item:", error));
     }
 
-    function addObjective() {
-      const name = document.getElementById("objectiveName").value;
-      const points = parseInt(document.getElementById("objectivePoints").value, 10);
-
-      if (!name || isNaN(points)) {
-        alert("Please enter a valid objective name and points.");
-        return;
-      }
-
-      db.ref("objectives").push({ name, points })
+    // Remove Shop Item
+    function removeShopItem(itemId) {
+      db.ref("shopItems/" + itemId).remove()
         .then(() => {
-          alert("Objective added successfully!");
-          document.getElementById("objectiveName").value = "";
-          document.getElementById("objectivePoints").value = "";
-          fetchObjectives();
+          alert("Shop item removed successfully!");
+          fetchShopItems();
         })
-        .catch((error) => console.error("Error adding objective:", error));
-    }
-
-    function addShortDatedProduct() {
-      const description = document.getElementById("shortDatedDescription").value;
-      const bestBeforeDate = document.getElementById("bestBeforeDate").value;
-      const price = parseFloat(document.getElementById("reducedPrice").value);
-      const points = parseInt(document.getElementById("shortDatedPoints").value, 10);
-
-      if (!description || !bestBeforeDate || isNaN(price) || isNaN(points)) {
-        alert("Please fill in all fields with valid data.");
-        return;
-      }
-
-      db.ref("shortDatedProducts").push({
-        description: description,
-        bestBeforeDate: bestBeforeDate,
-        price: price,
-        points: points
-      }).then(() => {
-        alert("Short dated product added successfully!");
-        document.getElementById("shortDatedDescription").value = "";
-        document.getElementById("bestBeforeDate").value = "";
-        document.getElementById("reducedPrice").value = "";
-        document.getElementById("shortDatedPoints").value = "";
-        fetchShortDatedProducts();
-      }).catch((error) => console.error("Error adding short-dated product:", error));
-    }
-
-    function removeProduct(productId) {
-      db.ref("products/" + productId).remove()
-        .then(() => {
-          alert("Product removed successfully!");
-          fetchProducts();
-        })
-        .catch((error) => console.error("Error removing product:", error));
-    }
-
-    function removeObjective(objectiveId) {
-      db.ref("objectives/" + objectiveId).remove()
-        .then(() => {
-          alert("Objective removed successfully!");
-          fetchObjectives();
-        })
-        .catch((error) => console.error("Error removing objective:", error));
-    }
-
-    function removeShortDatedProduct(productId) {
-      db.ref("shortDatedProducts/" + productId).remove()
-        .then(() => {
-          alert("Short dated product removed successfully!");
-          fetchShortDatedProducts();
-        })
-        .catch((error) => console.error("Error removing short-dated product:", error));
+        .catch((error) => console.error("Error removing shop item:", error));
     }
 
     function adjustPoints(playerId) {
@@ -349,10 +274,10 @@
       });
     }
 
+    // Fetch data initially
     fetchPlayers();
     fetchProducts();
-    fetchObjectives();
-    fetchShortDatedProducts();
+    fetchShopItems();
   </script>
 </body>
 </html>
