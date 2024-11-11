@@ -105,6 +105,12 @@
     .item-button:hover {
       background-color: #FF4E59;
     }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      justify-items: center;
+    }
   </style>
 </head>
 <body>
@@ -126,17 +132,14 @@
     <h2>Earn Points by Selecting Items!</h2>
     <p class="points-display">Current Points: <span id="points">0</span></p>
     
-    <!-- Available Products Section -->
     <h3>Available Products</h3>
-    <div class="product-list" id="productList"></div>
+    <div class="grid-container" id="productList"></div>
 
-    <!-- Available Short-Dated Products Section -->
     <h3>Available Short-Dated Products</h3>
-    <div class="short-dated-list" id="shortDatedList"></div>
+    <div class="grid-container" id="shortDatedList"></div>
 
-    <!-- Available Objectives Section -->
     <h3>Available Objectives</h3>
-    <div class="objective-list" id="objectiveList"></div>
+    <div class="grid-container" id="objectiveList"></div>
   </div>
 
   <!-- Load Firebase SDKs from CDN -->
@@ -150,13 +153,12 @@
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      storageBucket: "telesalesgame-a09f2.appspot.com",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
@@ -171,7 +173,6 @@
           document.getElementById("points").innerText = currentPoints;
         });
         
-        // Fetch game items and track achievements
         fetchProducts();
         fetchShortDatedProducts();
         fetchObjectives();
@@ -180,26 +181,71 @@
       }
     });
 
-    function checkAchievements(uid, achievementId, title, description, icon) {
-      const achievementsRef = db.ref("users/" + uid + "/achievements/" + achievementId);
-      achievementsRef.once("value", (snapshot) => {
-        if (!snapshot.exists()) {
-          achievementsRef.set({ title, description, icon });
-          alert(`Achievement unlocked: ${title}`);
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const products = snapshot.val();
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
+
+        for (const key in products) {
+          const product = products[key];
+          const productCard = document.createElement("div");
+          productCard.className = "item-card";
+          productCard.innerHTML = `
+            <div class="item-name">${product.name}</div>
+            <div class="item-details">${product.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
+          `;
+          productList.appendChild(productCard);
         }
       });
     }
 
-    function awardAchievements(user, pointsEarned) {
-      if (pointsEarned >= 100) {
-        checkAchievements(user.uid, "pointPro", "Point Pro", "Earned 100 points in a single session.", "path/to/pointProBadge.png");
-      }
-      if (currentPoints >= 500) {
-        checkAchievements(user.uid, "highRoller", "High Roller", "Reached 500 points in total.", "path/to/highRollerBadge.png");
-      }
-      if (new Date().getHours() < 8) {
-        checkAchievements(user.uid, "earlyBird", "Early Bird", "Logged in before 8 am.", "path/to/earlyBirdBadge.png");
-      }
+    function fetchShortDatedProducts() {
+      const shortDatedRef = db.ref("shortDatedProducts");
+      shortDatedRef.on("value", (snapshot) => {
+        const shortDatedProducts = snapshot.val();
+        const shortDatedList = document.getElementById("shortDatedList");
+        shortDatedList.innerHTML = "";
+
+        for (const key in shortDatedProducts) {
+          const product = shortDatedProducts[key];
+          const formattedDate = new Date(product.date).toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "2-digit" });
+
+          const shortDatedCard = document.createElement("div");
+          shortDatedCard.className = "item-card";
+          shortDatedCard.innerHTML = `
+            <div class="item-name">${product.description}</div>
+            <div class="item-details">Price: £${product.price.toFixed(2)}</div>
+            <div class="item-details">Expiry Date: ${formattedDate}</div>
+            <div class="item-details">${product.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
+          `;
+          shortDatedList.appendChild(shortDatedCard);
+        }
+      });
+    }
+
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectives = snapshot.val();
+        const objectiveList = document.getElementById("objectiveList");
+        objectiveList.innerHTML = "";
+
+        for (const key in objectives) {
+          const objective = objectives[key];
+          const objectiveCard = document.createElement("div");
+          objectiveCard.className = "item-card";
+          objectiveCard.innerHTML = `
+            <div class="item-name">${objective.name}</div>
+            <div class="item-details">${objective.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${objective.points})">Earn Points</button>
+          `;
+          objectiveList.appendChild(objectiveCard);
+        }
+      });
     }
 
     function earnPoints(points) {
@@ -211,7 +257,6 @@
           const newTotalPoints = currentUserPoints + points;
           userPointsRef.set(newTotalPoints).then(() => {
             document.getElementById("points").innerText = newTotalPoints;
-            awardAchievements(user, points);  // Check for achievements
           });
         });
       } else {
