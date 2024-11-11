@@ -57,18 +57,6 @@
       margin-bottom: 20px;
       text-align: left;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    table, th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-    th {
-      background-color: #617B8F;
-      color: white;
-    }
     button {
       padding: 10px 20px;
       color: #fff;
@@ -82,10 +70,31 @@
     button:hover {
       background-color: #FF4E59;
     }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    .remove-button {
+      background-color: #FF4E59;
+      margin-top: 10px;
+    }
+    .redemption-table {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+    }
+    .redemption-table th, .redemption-table td {
+      border: 1px solid #97CFF3;
+      padding: 8px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
-
   <div class="navbar">
     <a href="profile.html">Profile</a>
     <a href="game.html">Play Game</a>
@@ -102,40 +111,60 @@
   </header>
 
   <div class="dashboard">
-    <!-- Player List Section -->
+    <!-- Player List Section with Adjust Points functionality -->
     <div class="card" id="playersCard">
       <h2>Player List</h2>
       <p>To adjust a player’s points, enter a positive number to add points or a negative number (e.g., -5) to deduct points, then click "Adjust Points".</p>
       <div id="playersList"></div>
     </div>
 
-    <!-- Available Products Section -->
+    <!-- Product Section with Add Product functionality -->
     <div class="card" id="productsCard">
       <h2>Available Products</h2>
       <div id="productList"></div>
+      <h3>Add New Product</h3>
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="number" id="productPoints" placeholder="Points">
+      <button onclick="addProduct()">Add Product</button>
     </div>
 
-    <!-- Available Short Dated Products Section -->
+    <!-- Objective Section with Add Objective functionality -->
+    <div class="card" id="objectivesCard">
+      <h2>Available Objectives</h2>
+      <div id="objectivesList"></div>
+      <h3>Add New Objective</h3>
+      <input type="text" id="objectiveName" placeholder="Objective Name">
+      <input type="number" id="objectivePoints" placeholder="Points">
+      <button onclick="addObjective()">Add Objective</button>
+    </div>
+
+    <!-- Short Dated Product Section -->
     <div class="card" id="shortDatedCard">
       <h2>Available Short Dated Products</h2>
       <div id="shortDatedProductsList"></div>
+      <h3>Add New Short Dated Product</h3>
+      <input type="text" id="shortDatedDescription" placeholder="Product Description">
+      <input type="date" id="bestBeforeDate" placeholder="Best Before Date (dd/MM/yy)">
+      <input type="number" id="reducedPrice" placeholder="Reduced Price (£)" step="0.01">
+      <input type="number" id="shortDatedPoints" placeholder="Points">
+      <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
     </div>
 
-    <!-- Redemption History Section -->
-    <div class="card" id="redemptionHistoryCard">
-      <h2>Redemption History</h2>
-      <table>
+    <!-- Redemption Requests Section -->
+    <div class="card" id="redemptionsCard">
+      <h2>Redemption Requests</h2>
+      <table class="redemption-table">
         <thead>
           <tr>
+            <th>User</th>
             <th>Item</th>
-            <th>User (First Name Last Name)</th>
-            <th>Points Spent</th>
-            <th>Date</th>
             <th>Status</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
-        <tbody id="redemptionHistoryList"></tbody>
+        <tbody id="redemptionList">
+          <!-- Redemption rows will be populated here by JavaScript -->
+        </tbody>
       </table>
     </div>
   </div>
@@ -155,30 +184,227 @@
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     function fetchPlayers() {
-      // Code to fetch and display players
+      const playersRef = db.ref("users");
+      playersRef.on("value", (snapshot) => {
+        const playersList = document.getElementById("playersList");
+        playersList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const playerData = childSnapshot.val();
+          const playerId = childSnapshot.key;
+          playersList.innerHTML += `
+            <div class="card">
+              <strong>${playerData.firstName} ${playerData.lastName}</strong>
+              <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
+              <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
+              <button onclick="adjustPoints('${playerId}')">Adjust Points</button>
+            </div>`;
+        });
+      });
     }
 
     function fetchProducts() {
-      // Code to fetch and display products
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div class="card">
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
+
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectivesList = document.getElementById("objectivesList");
+        objectivesList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const objective = childSnapshot.val();
+          const objectiveId = childSnapshot.key;
+          objectivesList.innerHTML += `
+            <div class="card">
+              <strong>${objective.name}</strong> - ${objective.points} Points
+              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+            </div>`;
+        });
+      });
     }
 
     function fetchShortDatedProducts() {
-      // Code to fetch and display short dated products
+      const shortDatedProductsRef = db.ref("shortDatedProducts");
+      shortDatedProductsRef.on("value", (snapshot) => {
+        const shortDatedProductsList = document.getElementById("shortDatedProductsList");
+        shortDatedProductsList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          const bestBeforeDateFormatted = new Date(product.bestBeforeDate).toLocaleDateString("en-GB");
+
+          shortDatedProductsList.innerHTML += `
+            <div class="card">
+              <strong>${product.description}</strong><br>
+              Best Before: ${bestBeforeDateFormatted}<br>
+              Price: £${product.price.toFixed(2)}<br>
+              Points: ${product.points}<br>
+              <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
     }
 
-    function fetchRedemptionHistory() {
-      // Code to fetch and display redemption history
+    function fetchRedemptions() {
+      const redemptionsRef = db.ref("redemptions");
+      redemptionsRef.on("value", (snapshot) => {
+        const redemptionList = document.getElementById("redemptionList");
+        redemptionList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const redemption = childSnapshot.val();
+          const redemptionId = childSnapshot.key;
+
+          redemptionList.innerHTML += `
+            <tr>
+              <td>${redemption.userName}</td>
+              <td>${redemption.itemName}</td>
+              <td>${redemption.status}</td>
+              <td>
+                <button onclick="markComplete('${redemptionId}')">Complete</button>
+                <button onclick="removeRedemption('${redemptionId}')">Remove</button>
+              </td>
+            </tr>`;
+        });
+      });
+    }
+
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid product name and points.");
+        return;
+      }
+
+      db.ref("products").push({ name, points }).then(() => {
+        alert("Product added successfully!");
+        document.getElementById("productName").value = "";
+        document.getElementById("productPoints").value = "";
+        fetchProducts();
+      });
+    }
+
+    function addObjective() {
+      const name = document.getElementById("objectiveName").value;
+      const points = parseInt(document.getElementById("objectivePoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid objective name and points.");
+        return;
+      }
+
+      db.ref("objectives").push({ name, points }).then(() => {
+        alert("Objective added successfully!");
+        document.getElementById("objectiveName").value = "";
+        document.getElementById("objectivePoints").value = "";
+        fetchObjectives();
+      });
+    }
+
+    function addShortDatedProduct() {
+      const description = document.getElementById("shortDatedDescription").value;
+      const bestBeforeDate = document.getElementById("bestBeforeDate").value;
+      const price = parseFloat(document.getElementById("reducedPrice").value);
+      const points = parseInt(document.getElementById("shortDatedPoints").value, 10);
+
+      if (!description || !bestBeforeDate || isNaN(price) || isNaN(points)) {
+        alert("Please fill in all fields with valid data.");
+        return;
+      }
+
+      db.ref("shortDatedProducts").push({
+        description: description,
+        bestBeforeDate: bestBeforeDate,
+        price: price,
+        points: points
+      }).then(() => {
+        alert("Short dated product added successfully!");
+        document.getElementById("shortDatedDescription").value = "";
+        document.getElementById("bestBeforeDate").value = "";
+        document.getElementById("reducedPrice").value = "";
+        document.getElementById("shortDatedPoints").value = "";
+        fetchShortDatedProducts();
+      });
+    }
+
+    function removeProduct(productId) {
+      db.ref("products/" + productId).remove().then(() => {
+        alert("Product removed successfully!");
+        fetchProducts();
+      });
+    }
+
+    function removeObjective(objectiveId) {
+      db.ref("objectives/" + objectiveId).remove().then(() => {
+        alert("Objective removed successfully!");
+        fetchObjectives();
+      });
+    }
+
+    function removeShortDatedProduct(productId) {
+      db.ref("shortDatedProducts/" + productId).remove().then(() => {
+        alert("Short dated product removed successfully!");
+        fetchShortDatedProducts();
+      });
+    }
+
+    function removeRedemption(redemptionId) {
+      db.ref("redemptions/" + redemptionId).remove().then(() => {
+        alert("Redemption removed successfully!");
+        fetchRedemptions();
+      });
+    }
+
+    function adjustPoints(playerId) {
+      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
+      const change = parseInt(pointsInput.value, 10) || 0;
+
+      db.ref("users/" + playerId).once("value").then((snapshot) => {
+        const currentPoints = snapshot.val().points || 0;
+        const newPoints = currentPoints + change;
+
+        db.ref("users/" + playerId).update({ points: newPoints }).then(() => {
+          alert("Points adjusted successfully!");
+          fetchPlayers();
+        });
+      });
+    }
+
+    function markComplete(redemptionId) {
+      db.ref("redemptions/" + redemptionId).update({ status: "Completed" }).then(() => {
+        alert("Redemption marked as complete!");
+        fetchRedemptions();
+      });
     }
 
     fetchPlayers();
     fetchProducts();
+    fetchObjectives();
     fetchShortDatedProducts();
-    fetchRedemptionHistory();
+    fetchRedemptions();
   </script>
 </body>
 </html>
