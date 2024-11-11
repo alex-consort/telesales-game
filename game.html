@@ -105,6 +105,13 @@
     .item-button:hover {
       background-color: #FF4E59;
     }
+    /* Grid Layout */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+      justify-items: center;
+    }
   </style>
 </head>
 <body>
@@ -128,19 +135,19 @@
     
     <!-- Available Products Section -->
     <h3>Available Products</h3>
-    <div class="product-list" id="productList">
+    <div class="grid-container" id="productList">
       <!-- Product cards will be populated here -->
     </div>
 
     <!-- Available Short-Dated Products Section -->
     <h3>Available Short-Dated Products</h3>
-    <div class="short-dated-list" id="shortDatedList">
+    <div class="grid-container" id="shortDatedList">
       <!-- Short-dated product cards will be populated here -->
     </div>
 
     <!-- Available Objectives Section -->
     <h3>Available Objectives</h3>
-    <div class="objective-list" id="objectiveList">
+    <div class="grid-container" id="objectiveList">
       <!-- Objective cards will be populated here -->
     </div>
   </div>
@@ -157,7 +164,7 @@
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.appspot.com",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
@@ -210,7 +217,7 @@
       });
     }
 
-    // Function to fetch short-dated products with metadata (price, date)
+    // Function to fetch short-dated products with metadata (price, formatted date)
     function fetchShortDatedProducts() {
       const shortDatedRef = db.ref("shortDatedProducts");
       shortDatedRef.on("value", (snapshot) => {
@@ -220,12 +227,21 @@
 
         for (const key in shortDatedProducts) {
           const product = shortDatedProducts[key];
+          
+          // Format date to dd/MM/yy
+          const date = new Date(product.date);
+          const formattedDate = date.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit"
+          });
+
           const shortDatedCard = document.createElement("div");
           shortDatedCard.className = "item-card";
           shortDatedCard.innerHTML = `
             <div class="item-name">${product.description}</div>
             <div class="item-details">Price: £${product.price.toFixed(2)}</div>
-            <div class="item-details">Expiry Date: ${product.date}</div>
+            <div class="item-details">Expiry Date: ${formattedDate}</div>
             <div class="item-details">${product.points} Points</div>
             <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
           `;
