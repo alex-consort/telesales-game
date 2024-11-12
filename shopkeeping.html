@@ -268,12 +268,17 @@
 
     // Mark redemption as complete
     function markAsComplete(redemptionId) {
-      db.ref("purchases/" + redemptionId).update({ status: "Completed" })
+      const redemptionRef = db.ref("purchases/" + redemptionId);
+
+      redemptionRef.update({ status: "Completed" })  // Update status to 'Completed'
         .then(() => {
           alert("Redemption marked as completed!");
-          fetchRedemptions();
+          fetchRedemptions();  // Refresh the redemption list
         })
-        .catch((error) => console.error("Error marking redemption:", error));
+        .catch((error) => {
+          console.error("Error marking redemption:", error);
+          alert("Error updating redemption status.");
+        });
     }
 
     // Clear redemption
