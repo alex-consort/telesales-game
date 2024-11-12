@@ -229,7 +229,7 @@
     // Fetch and display redemptions
     function fetchRedemptions() {
       const purchasesRef = db.ref("purchases");
-      purchasesRef.on("value", (snapshot) => {
+      purchasesRef.once("value", (snapshot) => {  // Use once to get fresh data without duplicates
         const redemptionList = document.getElementById("redemptionList");
         redemptionList.innerHTML = "";
 
