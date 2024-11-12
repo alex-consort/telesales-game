@@ -42,6 +42,11 @@
       height: 50px;
       margin-right: 20px;
     }
+    .game-title {
+      color: #FFFFFF;
+      font-size: 1.8em;
+      font-weight: bold;
+    }
     .dashboard {
       display: flex;
       justify-content: space-around;
@@ -200,10 +205,14 @@
         snapshot.forEach((childSnapshot) => {
           const redemption = childSnapshot.val();
           const redemptionId = childSnapshot.key;
-          const productName = redemption.productName;
+          const productName = redemption.itemName;
           const userId = redemption.userId;
-          const redemptionDate = new Date(redemption.dateRedeemed).toLocaleDateString("en-GB");
-          const status = redemption.status;
+          const redemptionDate = new Date(redemption.purchaseDate);  // Ensure proper date format
+          const formattedDate = redemptionDate.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+          });
 
           // Fetch user details
           db.ref('users/' + userId).once('value').then(userSnapshot => {
@@ -214,8 +223,8 @@
               <tr>
                 <td>${productName}</td>
                 <td>${userName}</td>
-                <td>${redemptionDate}</td>
-                <td>${status}</td>
+                <td>${formattedDate}</td>
+                <td>${redemption.status}</td>
                 <td>
                   <button class="complete-button" onclick="markAsComplete('${redemptionId}')">Complete</button>
                   <button class="clear-button" onclick="clearRedemption('${redemptionId}')">Clear</button>
@@ -224,36 +233,6 @@
           });
         });
       });
-    }
-
-    // Add a product to shopItems
-    function addProduct() {
-      const name = document.getElementById("productName").value;
-      const points = parseInt(document.getElementById("productPoints").value, 10);
-
-      if (!name || isNaN(points)) {
-        alert("Please enter a valid product name and points.");
-        return;
-      }
-
-      db.ref("shopItems").push({ name, points })
-        .then(() => {
-          alert("Product added successfully!");
-          document.getElementById("productName").value = "";
-          document.getElementById("productPoints").value = "";
-          fetchProducts();
-        })
-        .catch((error) => console.error("Error adding product:", error));
-    }
-
-    // Remove a product from shopItems
-    function removeProduct(productId) {
-      db.ref("shopItems/" + productId).remove()
-        .then(() => {
-          alert("Product removed successfully!");
-          fetchProducts();
-        })
-        .catch((error) => console.error("Error removing product:", error));
     }
 
     // Mark redemption as complete
