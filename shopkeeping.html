@@ -273,7 +273,7 @@
       redemptionRef.update({ status: "Completed" })  // Update status to 'Completed'
         .then(() => {
           alert("Redemption marked as completed!");
-          fetchRedemptions();  // Refresh the redemption list
+          fetchRedemptions();  // Refresh the redemption list to remove duplicates
         })
         .catch((error) => {
           console.error("Error marking redemption:", error);
