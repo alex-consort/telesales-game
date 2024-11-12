@@ -195,6 +195,37 @@
       });
     }
 
+    // Add a new product to shopItems
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid product name and points.");
+        return;
+      }
+
+      db.ref("shopItems").push({
+        name: name,
+        points: points
+      }).then(() => {
+        alert("Product added successfully!");
+        document.getElementById("productName").value = "";
+        document.getElementById("productPoints").value = "";
+        fetchProducts();
+      }).catch((error) => console.error("Error adding product:", error));
+    }
+
+    // Remove a product from shopItems
+    function removeProduct(productId) {
+      db.ref("shopItems/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts();
+        })
+        .catch((error) => console.error("Error removing product:", error));
+    }
+
     // Fetch and display redemptions
     function fetchRedemptions() {
       const purchasesRef = db.ref("purchases");
