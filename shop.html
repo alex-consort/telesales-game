@@ -179,25 +179,25 @@
       }
     });
 
-    // Predefined Shop Items
-    const shopItems = [
-      { id: 'credit', name: "£5 Staff Purchase Credit", pointsRequired: 500 },
-      { id: 'early15', name: "Home 15 Minutes Early", pointsRequired: 300 },
-      { id: 'early60', name: "Home 1 Hour Early", pointsRequired: 1000 }
-    ];
-
     function fetchShopItems() {
       const shopItemsDiv = document.getElementById("shopItems");
       shopItemsDiv.innerHTML = "";
-      shopItems.forEach((item) => {
-        const itemCard = document.createElement("div");
-        itemCard.className = "item-card";
-        itemCard.innerHTML = `
-          <div class="item-name">${item.name}</div>
-          <div class="item-details">Points Required: ${item.pointsRequired}</div>
-          <button class="item-button" onclick="redeemItem('${item.id}', ${item.pointsRequired}, '${item.name}')">Redeem</button>
-        `;
-        shopItemsDiv.appendChild(itemCard);
+
+      // Fetch dynamic shop items from Firebase
+      const shopItemsRef = db.ref("shopItems");
+      shopItemsRef.on("value", (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          const item = childSnapshot.val();
+          const itemId = childSnapshot.key;
+          const itemCard = document.createElement("div");
+          itemCard.className = "item-card";
+          itemCard.innerHTML = `
+            <div class="item-name">${item.name}</div>
+            <div class="item-details">Points Required: ${item.points}</div>
+            <button class="item-button" onclick="redeemItem('${itemId}', ${item.points}, '${item.name}')">Redeem</button>
+          `;
+          shopItemsDiv.appendChild(itemCard);
+        });
       });
     }
 
@@ -232,13 +232,7 @@
           purchaseDate: new Date().toISOString()
         });
         alert("Redemption successful!");
-        notifySupervisor(itemName, pointsRequired);
       }).catch((error) => console.error("Redemption failed:", error));
-    }
-
-    function notifySupervisor(itemName, pointsRequired) {
-      // You can add further implementation here to send a notification to the supervisor.
-      console.log(`Supervisor notified: ${itemName} redeemed for ${pointsRequired} points.`);
     }
 
     function fetchPurchaseHistory() {
