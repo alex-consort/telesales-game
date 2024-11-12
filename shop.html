@@ -227,9 +227,9 @@
         purchasesRef.push({
           userId: user.uid,
           itemId: itemId,
-          itemName: itemName,
+          itemName: itemName,  // Ensure itemName is being passed correctly
           pointsSpent: pointsRequired,
-          purchaseDate: new Date().toISOString()
+          purchaseDate: new Date().toISOString()  // Correctly format the date
         });
         alert("Redemption successful!");
       }).catch((error) => console.error("Redemption failed:", error));
