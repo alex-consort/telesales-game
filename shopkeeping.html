@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopkeeping Dashboard - Telesales Game</title>
+  <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
+  <style>
+    body {
+      font-family: 'Calibri', sans-serif;
+      background-color: #f4f6f9;
+      color: #274358;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar {
+      background-color: #617B8F;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .navbar a:hover {
+      background-color: #FF4E59;
+    }
+    .header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background-color: #617B8F;
+    }
+    .logo {
+      height: 50px;
+      margin-right: 20px;
+    }
+    .dashboard {
+      display: flex;
+      justify-content: space-around;
+      padding: 20px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      width: 30%;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    button {
+      padding: 10px 20px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #FF4E59;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #617B8F;
+      color: white;
+    }
+    .complete-button, .clear-button {
+      padding: 5px 10px;
+      background-color: #FF4E59;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .complete-button:hover, .clear-button:hover {
+      background-color: #274358;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <a href="profile.html">Profile</a>
+    <a href="game.html">Play Game</a>
+    <a href="shop.html">Shop</a>
+    <a href="achievements.html">Achievements</a>
+    <a href="settings.html">Settings</a>
+    <a href="supervisor.html">Supervisor</a>
+    <a href="shopkeeping.html">Shopkeeping</a>
+    <a href="logout.html">Log Out</a>
+  </div>
+
+  <header class="header">
+    <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
+    <h1 class="game-title">Shopkeeping Dashboard</h1>
+  </header>
+
+  <div class="dashboard">
+    <!-- Add and Remove Shop Items -->
+    <div class="card" id="productsCard">
+      <h2>Manage Shop Items</h2>
+      <div id="productList"></div>
+      <h3>Add New Product</h3>
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="number" id="productPoints" placeholder="Points">
+      <button onclick="addProduct()">Add Product</button>
+    </div>
+
+    <!-- Redemption Table -->
+    <div class="card" id="redemptionCard">
+      <h2>Redemptions Made</h2>
+      <table id="redemptionTable">
+        <thead>
+          <tr>
+            <th>Product Name</th>
+            <th>User</th>
+            <th>Date Redeemed</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="redemptionList"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Fetch and display products from shopItems
+    function fetchProducts() {
+      const productsRef = db.ref("shopItems");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div class="card">
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
+
+    // Fetch and display redemptions
+    function fetchRedemptions() {
+      const purchasesRef = db.ref("purchases");
+      purchasesRef.on("value", (snapshot) => {
+        const redemptionList = document.getElementById("redemptionList");
+        redemptionList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const redemption = childSnapshot.val();
+          const redemptionId = childSnapshot.key;
+          const productName = redemption.productName;
+          const userId = redemption.userId;
+          const redemptionDate = new Date(redemption.dateRedeemed).toLocaleDateString("en-GB");
+          const status = redemption.status;
+
+          // Fetch user details
+          db.ref('users/' + userId).once('value').then(userSnapshot => {
+            const user = userSnapshot.val();
+            const userName = `${user.firstName} ${user.lastName}`;
+
+            redemptionList.innerHTML += `
+              <tr>
+                <td>${productName}</td>
+                <td>${userName}</td>
+                <td>${redemptionDate}</td>
+                <td>${status}</td>
+                <td>
+                  <button class="complete-button" onclick="markAsComplete('${redemptionId}')">Complete</button>
+                  <button class="clear-button" onclick="clearRedemption('${redemptionId}')">Clear</button>
+                </td>
+              </tr>`;
+          });
+        });
+      });
+    }
+
+    // Add a product to shopItems
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid product name and points.");
+        return;
+      }
+
+      db.ref("shopItems").push({ name, points })
+        .then(() => {
+          alert("Product added successfully!");
+          document.getElementById("productName").value = "";
+          document.getElementById("productPoints").value = "";
+          fetchProducts();
+        })
+        .catch((error) => console.error("Error adding product:", error));
+    }
+
+    // Remove a product from shopItems
+    function removeProduct(productId) {
+      db.ref("shopItems/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts();
+        })
+        .catch((error) => console.error("Error removing product:", error));
+    }
+
+    // Mark redemption as complete
+    function markAsComplete(redemptionId) {
+      db.ref("purchases/" + redemptionId).update({ status: "Completed" })
+        .then(() => {
+          alert("Redemption marked as completed!");
+          fetchRedemptions();
+        })
+        .catch((error) => console.error("Error marking redemption:", error));
+    }
+
+    // Clear redemption
+    function clearRedemption(redemptionId) {
+      db.ref("purchases/" + redemptionId).remove()
+        .then(() => {
+          alert("Redemption cleared!");
+          fetchRedemptions();
+        })
+        .catch((error) => console.error("Error clearing redemption:", error));
+    }
+
+    // Initial fetch
+    fetchProducts();
+    fetchRedemptions();
+  </script>
+</body>
+</html>
