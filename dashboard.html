@@ -120,6 +120,8 @@
       <p>Name: <span id="userName">User Name</span></p>
       <p>Current Points: <span id="userPoints">0</span></p>
       <p>Depot: <span id="userDepot">Depot Name</span></p>
+      <p>Items Sold: <span id="userItemsSold">0</span></p>
+      <p>Objectives Completed: <span id="userObjectivesCompleted">0</span></p>
     </div>
 
     <!-- Leaderboard -->
@@ -170,6 +172,8 @@
               document.getElementById("userName").innerText = `${userData.firstName} ${userData.lastName}`;
               document.getElementById("userPoints").innerText = userData.points || 0;
               document.getElementById("userDepot").innerText = userData.depot || "N/A";
+              document.getElementById("userItemsSold").innerText = userData.itemsSold || 0;  // New field for items sold
+              document.getElementById("userObjectivesCompleted").innerText = userData.objectivesCompleted || 0;  // New field for objectives completed
             } else {
               console.warn("User data not found in Firebase.");
             }
@@ -199,7 +203,7 @@
           const entries = [];
           for (const userId in leaderboard) {
             const user = leaderboard[userId];
-            entries.push({ name: `${user.firstName} ${user.lastName}`, points: user.points });
+            entries.push({ name: `${user.firstName} ${user.lastName}`, points: user.points, itemsSold: user.itemsSold, objectivesCompleted: user.objectivesCompleted });
           }
 
           // Sort entries by points in descending order
@@ -208,7 +212,7 @@
           // Create leaderboard entries
           entries.forEach(entry => {
             const listItem = document.createElement("li");
-            listItem.innerText = `${entry.name}: ${entry.points} points`;
+            listItem.innerText = `${entry.name}: ${entry.points} points | Items Sold: ${entry.itemsSold} | Objectives Completed: ${entry.objectivesCompleted}`;
             leaderboardList.appendChild(listItem);
           });
         })
