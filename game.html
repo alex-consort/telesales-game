@@ -197,7 +197,7 @@
           productCard.innerHTML = `
             <div class="item-name">${product.name}</div>
             <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${product.points}, 'product')">Earn Points</button>
           `;
           productList.appendChild(productCard);
         }
@@ -226,7 +226,7 @@
             <div class="item-details">Price: £${product.price.toFixed(2)}</div>
             <div class="item-details">Expiry Date: ${formattedDate}</div>
             <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points})">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${product.points}, 'shortDatedProduct')">Earn Points</button>
           `;
           shortDatedList.appendChild(shortDatedCard);
         }
@@ -247,24 +247,39 @@
           objectiveCard.innerHTML = `
             <div class="item-name">${objective.name}</div>
             <div class="item-details">${objective.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${objective.points})">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${objective.points}, 'objective')">Earn Points</button>
           `;
           objectiveList.appendChild(objectiveCard);
         }
       });
     }
 
-    function earnPoints(points) {
+    function earnPoints(points, type) {
       const user = auth.currentUser;
       if (user) {
+        const userRef = db.ref("users/" + user.uid);
         const userPointsRef = db.ref("users/" + user.uid + "/points");
+        const itemsSoldRef = db.ref("users/" + user.uid + "/itemsSold");
+        const objectivesCompletedRef = db.ref("users/" + user.uid + "/objectivesCompleted");
+
+        // Update points, items sold or objectives completed based on the type
         userPointsRef.once("value").then((snapshot) => {
           const currentUserPoints = snapshot.val() || 0;
           const newTotalPoints = currentUserPoints + points;
-          userPointsRef.set(newTotalPoints).then(() => {
-            document.getElementById("points").innerText = newTotalPoints;
-          });
+          userPointsRef.set(newTotalPoints);
         });
+
+        if (type === 'product') {
+          itemsSoldRef.transaction((currentValue) => {
+            return (currentValue || 0) + 1; // Increment items sold by 1
+          });
+        } else if (type === 'objective') {
+          objectivesCompletedRef.transaction((currentValue) => {
+            return (currentValue || 0) + 1; // Increment objectives completed by 1
+          });
+        }
+
+        document.getElementById("points").innerText = newTotalPoints;
       } else {
         alert("You need to be logged in to earn points.");
       }
