@@ -236,12 +236,12 @@
         
         purchasesRef.push(redemptionData);
 
-        // Record the redemption in masterHistory
+        // Ensure masterHistory node exists and add redemption entry
         masterHistoryRef.push({
           actionType: "Redemption",
           productName: itemName,
-          firstName: user.displayName.split(" ")[0],
-          lastName: user.displayName.split(" ")[1],
+          firstName: user.displayName ? user.displayName.split(" ")[0] : "Unknown",
+          lastName: user.displayName ? user.displayName.split(" ")[1] || "Unknown" : "Unknown",
           points: pointsRequired,
           purchaseDate: new Date().toISOString()
         });
