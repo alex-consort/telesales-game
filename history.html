@@ -219,6 +219,19 @@
       });
     }
 
+    // Function to add an action to the Firebase masterHistory
+    function addActionToHistory(actionType, productName, userName, points, date) {
+      const historyRef = db.ref("masterHistory");
+      const newActionRef = historyRef.push();
+      newActionRef.set({
+        actionType: actionType,
+        productName: productName,
+        userName: userName,
+        points: points,
+        date: date
+      });
+    }
+
     // Function to export data as CSV
     function exportToCSV() {
       const table = document.getElementById("dataTable");
