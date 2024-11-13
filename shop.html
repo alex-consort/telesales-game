@@ -170,11 +170,19 @@
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        userPointsRef.on("value", (snapshot) => {
-          currentPoints = snapshot.val() || 0;
+        const userRef = db.ref("users/" + user.uid);
+        
+        // Fetch user points and name details
+        userRef.once("value").then(snapshot => {
+          const userData = snapshot.val();
+          currentPoints = userData.points || 0;
           document.getElementById("userPoints").innerText = currentPoints;
+
+          // Store first and last name for later use
+          window.userFirstName = userData.firstName || "Unknown";
+          window.userLastName = userData.lastName || "Unknown";
         });
+
         fetchShopItems();
         fetchPurchaseHistory();
       } else {
@@ -186,7 +194,6 @@
       const shopItemsDiv = document.getElementById("shopItems");
       shopItemsDiv.innerHTML = "";
 
-      // Fetch items from Firebase shopItems node
       const shopItemsRef = db.ref("shopItems");
       shopItemsRef.on("value", (snapshot) => {
         snapshot.forEach((childSnapshot) => {
@@ -238,10 +245,10 @@
           });
           masterHistoryRef.push({
             actionType: "Redemption",
-            itemName: itemName,
-            pointsSpent: -pointsRequired,
-            firstName: user.displayName ? user.displayName.split(" ")[0] : "Unknown",
-            lastName: user.displayName ? user.displayName.split(" ")[1] : "Unknown",
+            productName: itemName,
+            points: -pointsRequired,
+            firstName: window.userFirstName,
+            lastName: window.userLastName,
             purchaseDate: new Date().toISOString()
           });
           alert("Redemption successful!");
