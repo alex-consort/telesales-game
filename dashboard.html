@@ -76,24 +76,30 @@
     /* Leaderboard Styles */
     .leaderboard {
       text-align: left;
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr 1fr;
+      gap: 20px;
+      padding: 0 20px;
     }
-    .leaderboard ul {
-      list-style: none;
-      padding: 0;
+    .leaderboard h2 {
+      grid-column: span 4;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      color: var(--blue);
     }
-    .leaderboard li {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 20px;
-      border-bottom: 1px solid #ddd;
-      font-size: 1.2em;
-    }
-    .leaderboard li:first-child {
+    .leaderboard .header {
       font-weight: bold;
       color: var(--rose);
       border-top: 2px solid var(--rose);
     }
-    .leaderboard li:hover {
+    .leaderboard div {
+      padding: 12px 20px;
+      border-bottom: 1px solid #ddd;
+      font-size: 1.2em;
+      display: flex;
+      justify-content: space-between;
+    }
+    .leaderboard div:hover {
       background-color: #f0f0f0;
     }
   </style>
@@ -127,9 +133,15 @@
     <!-- Leaderboard -->
     <div class="card leaderboard">
       <h2>Leaderboard</h2>
-      <ul id="leaderboard">
+      <div class="header">
+        <span>Rank</span>
+        <span>User</span>
+        <span>Points</span>
+        <span>Items Sold</span>
+      </div>
+      <div id="leaderboard">
         <!-- Leaderboard entries will be populated here -->
-      </ul>
+      </div>
     </div>
   </div>
 
@@ -167,23 +179,28 @@
             const userData = snapshot.val();
             console.log("User data fetched from Firebase:", userData); // Debugging: Log the user data
 
-            // Display user information if available
-            if (userData) {
-              document.getElementById("userName").innerText = `${userData.firstName} ${userData.lastName}`;
-              document.getElementById("userPoints").innerText = userData.points || 0;
-              document.getElementById("userDepot").innerText = userData.depot || "N/A";
-              document.getElementById("userItemsSold").innerText = userData.itemsSold || 0;  // New field for items sold
-              document.getElementById("userObjectivesCompleted").innerText = userData.objectivesCompleted || 0;  // New field for objectives completed
-            } else {
-              console.warn("User data not found in Firebase.");
+            // Initialize missing fields if they don't exist
+            if (!userData.itemsSold) {
+              userRef.update({ itemsSold: 0 });
             }
+            if (!userData.objectivesCompleted) {
+              userRef.update({ objectivesCompleted: 0 });
+            }
+
+            // Display user information
+            document.getElementById("userName").innerText = `${userData.firstName} ${userData.lastName}`;
+            document.getElementById("userPoints").innerText = userData.points || 0;
+            document.getElementById("userDepot").innerText = userData.depot || "N/A";
+            document.getElementById("userItemsSold").innerText = userData.itemsSold || 0;
+            document.getElementById("userObjectivesCompleted").innerText = userData.objectivesCompleted || 0;
+
+            // Fetch and display leaderboard
+            fetchLeaderboard();
           })
           .catch((error) => {
-            console.error("Error fetching user data:", error); // Log any errors in fetching data
+            console.error("Error fetching user data:", error);
           });
 
-        // Fetch and display leaderboard
-        fetchLeaderboard();
       } else {
         // Redirect to login if not authenticated
         window.location.href = "login.html";
@@ -210,9 +227,15 @@
           entries.sort((a, b) => b.points - a.points);
 
           // Create leaderboard entries
+          let rank = 1;
           entries.forEach(entry => {
-            const listItem = document.createElement("li");
-            listItem.innerText = `${entry.name}: ${entry.points} points | Items Sold: ${entry.itemsSold} | Objectives Completed: ${entry.objectivesCompleted}`;
+            const listItem = document.createElement("div");
+            listItem.innerHTML = `
+              <span>${rank++}</span>
+              <span>${entry.name}</span>
+              <span>${entry.points} points</span>
+              <span>${entry.itemsSold} items</span>
+            `;
             leaderboardList.appendChild(listItem);
           });
         })
