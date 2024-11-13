@@ -170,17 +170,14 @@
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        userPointsRef.on("value", (snapshot) => {
-          currentPoints = snapshot.val() || 0;
-          document.getElementById("userPoints").innerText = currentPoints;
-        });
-
-        // Fetch user's first and last name
-        db.ref("users/" + user.uid).once("value").then((snapshot) => {
+        // Fetch user's points and display
+        const userRef = db.ref("users/" + user.uid);
+        userRef.once("value").then((snapshot) => {
           const userData = snapshot.val();
+          currentPoints = userData.points || 0;
           firstName = userData.firstName || "Unknown";
           lastName = userData.lastName || "Unknown";
+          document.getElementById("userPoints").innerText = currentPoints;
         });
 
         fetchShopItems();
@@ -235,16 +232,13 @@
           return;
         }
       }).then(() => {
-        // Log the redemption in the purchases and masterHistory nodes
         const redemptionData = {
-          userId: user.uid,
-          itemId: itemId,
+          actionType: "Redemption",
           productName: itemName,
           points: -pointsRequired,
           purchaseDate: new Date().toISOString(),
           firstName: firstName,
-          lastName: lastName,
-          actionType: "Redemption"
+          lastName: lastName
         };
         purchasesRef.push(redemptionData);
         masterHistoryRef.push(redemptionData);
@@ -266,7 +260,7 @@
             year: "numeric"
           });
           purchaseHistory.innerHTML += `
-            <li>${purchase.productName} - ${-purchase.points} Points (Redeemed on ${formattedDate})</li>
+            <li>${purchase.productName} - ${purchase.points} Points (Redeemed on ${formattedDate})</li>
           `;
         });
       });
