@@ -170,7 +170,53 @@
         });
       });
 
-      // Fetch other history types similarly...
+      // Fetch product sold history
+      productSoldHistoryRef.once("value", (snapshot) => {
+        const dataList = document.getElementById("dataList");
+        snapshot.forEach((childSnapshot) => {
+          const data = childSnapshot.val();
+          dataList.innerHTML += `
+            <tr>
+              <td>${data.actionType}</td>
+              <td>${data.productName}</td>
+              <td>${data.userName}</td>
+              <td>${data.points}</td>
+              <td>${data.saleDate}</td>
+            </tr>`;
+        });
+      });
+
+      // Fetch objectives completed history
+      objectivesCompleteHistoryRef.once("value", (snapshot) => {
+        const dataList = document.getElementById("dataList");
+        snapshot.forEach((childSnapshot) => {
+          const data = childSnapshot.val();
+          dataList.innerHTML += `
+            <tr>
+              <td>${data.actionType}</td>
+              <td>${data.objectiveName}</td>
+              <td>${data.userName}</td>
+              <td>${data.points}</td>
+              <td>${data.completionDate}</td>
+            </tr>`;
+        });
+      });
+
+      // Fetch short-dated sold history
+      shortDatedSoldHistoryRef.once("value", (snapshot) => {
+        const dataList = document.getElementById("dataList");
+        snapshot.forEach((childSnapshot) => {
+          const data = childSnapshot.val();
+          dataList.innerHTML += `
+            <tr>
+              <td>${data.actionType}</td>
+              <td>${data.productName}</td>
+              <td>${data.userName}</td>
+              <td>${data.points}</td>
+              <td>${data.saleDate}</td>
+            </tr>`;
+        });
+      });
     }
 
     // Function to export data as CSV
