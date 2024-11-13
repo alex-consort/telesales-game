@@ -167,17 +167,12 @@
     const auth = firebase.auth();
 
     let currentPoints = 0;
-    let firstName = "Unknown";
-    let lastName = "Unknown";
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        const userRef = db.ref("users/" + user.uid);
-        userRef.once("value").then((snapshot) => {
-          const userData = snapshot.val();
-          currentPoints = userData.points || 0;
-          firstName = userData.firstName || "Unknown";
-          lastName = userData.lastName || "Unknown";
+        const userPointsRef = db.ref("users/" + user.uid + "/points");
+        userPointsRef.on("value", (snapshot) => {
+          currentPoints = snapshot.val() || 0;
           document.getElementById("userPoints").innerText = currentPoints;
         });
         fetchShopItems();
@@ -225,32 +220,42 @@
       const purchasesRef = db.ref("purchases");
       const masterHistoryRef = db.ref("masterHistory");
 
-      userPointsRef.transaction((currentPoints) => {
-        if (currentPoints >= pointsRequired) {
-          return currentPoints - pointsRequired;
+      userPointsRef.transaction((points) => {
+        if (points && points >= pointsRequired) {
+          return points - pointsRequired;
         } else {
           alert("Not enough points to redeem this item.");
-          return;
+          return; // Abort the transaction
         }
-      }).then((result) => {
-        if (result.committed) {
+      }, (error, committed, snapshot) => {
+        if (error) {
+          console.error("Transaction failed: ", error);
+        } else if (committed) {
+          const newPoints = snapshot.val(); // Updated points after deduction
+          currentPoints = newPoints;
+          document.getElementById("userPoints").innerText = currentPoints;
+
+          // Log the redemption in both purchases and masterHistory nodes
           const redemptionData = {
             userId: user.uid,
             itemId: itemId,
             itemName: itemName,
             pointsSpent: pointsRequired,
             purchaseDate: new Date().toISOString(),
-            firstName: firstName,
-            lastName: lastName
+            firstName: user.displayName ? user.displayName.split(" ")[0] : "Unknown",
+            lastName: user.displayName ? user.displayName.split(" ")[1] : "Unknown"
           };
+
           purchasesRef.push(redemptionData);
           masterHistoryRef.push({
             ...redemptionData,
-            actionType: "Redemption"
+            actionType: "Redemption",
+            pointsSpent: -pointsRequired // Log as a negative for clarity in history
           });
+
           alert("Redemption successful!");
         }
-      }).catch((error) => console.error("Redemption failed:", error));
+      });
     }
 
     function fetchPurchaseHistory() {
