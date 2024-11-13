@@ -73,35 +73,28 @@
     .card:hover {
       transform: scale(1.02);
     }
-    /* Leaderboard Styles */
-    .leaderboard {
+    /* Table Styles */
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 12px 20px;
       text-align: left;
-      display: grid;
-      grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
-      gap: 20px;
-      padding: 0 20px;
     }
-    .leaderboard h2 {
-      grid-column: span 5;
-      font-size: 1.8em;
-      margin-bottom: 20px;
-      color: var(--blue);
+    th {
+      background-color: var(--blue-grey);
+      color: white;
     }
-    .leaderboard .header {
-      font-weight: bold;
-      color: var(--rose);
-      border-top: 2px solid var(--rose);
-      padding: 12px 20px;
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
     }
-    .leaderboard div {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 20px;
-      border-bottom: 1px solid #ddd;
-      font-size: 1.2em;
-    }
-    .leaderboard div:hover {
-      background-color: #f0f0f0;
+    tr:hover {
+      background-color: #f1f1f1;
     }
   </style>
 </head>
@@ -131,19 +124,23 @@
       <p>Objectives Completed: <span id="userObjectivesCompleted">0</span></p>
     </div>
 
-    <!-- Leaderboard -->
-    <div class="card leaderboard">
+    <!-- Leaderboard Table -->
+    <div class="card">
       <h2>Leaderboard</h2>
-      <div class="header">
-        <span>Rank</span>
-        <span>User</span>
-        <span>Points</span>
-        <span>Items Sold</span>
-        <span>Objectives Completed</span>
-      </div>
-      <div id="leaderboard">
-        <!-- Leaderboard entries will be populated here -->
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>User</th>
+            <th>Points</th>
+            <th>Items Sold</th>
+            <th>Objectives Completed</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard">
+          <!-- Leaderboard entries will be populated here -->
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -231,15 +228,15 @@
           // Create leaderboard entries
           let rank = 1;
           entries.forEach(entry => {
-            const listItem = document.createElement("div");
-            listItem.innerHTML = `
-              <span>${rank++}</span>
-              <span>${entry.name}</span>
-              <span>${entry.points} points</span>
-              <span>${entry.itemsSold} items</span>
-              <span>${entry.objectivesCompleted} objectives</span>
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${rank++}</td>
+              <td>${entry.name}</td>
+              <td>${entry.points} points</td>
+              <td>${entry.itemsSold} items</td>
+              <td>${entry.objectivesCompleted} objectives</td>
             `;
-            leaderboardList.appendChild(listItem);
+            leaderboardList.appendChild(row);
           });
         })
         .catch((error) => {
