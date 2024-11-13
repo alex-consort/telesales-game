@@ -77,12 +77,12 @@
     .leaderboard {
       text-align: left;
       display: grid;
-      grid-template-columns: 1fr 2fr 1fr 1fr;
+      grid-template-columns: 1fr 2fr 1fr 1fr 1fr;
       gap: 20px;
       padding: 0 20px;
     }
     .leaderboard h2 {
-      grid-column: span 4;
+      grid-column: span 5;
       font-size: 1.8em;
       margin-bottom: 20px;
       color: var(--blue);
@@ -139,6 +139,7 @@
         <span>User</span>
         <span>Points</span>
         <span>Items Sold</span>
+        <span>Objectives Completed</span>
       </div>
       <div id="leaderboard">
         <!-- Leaderboard entries will be populated here -->
@@ -236,6 +237,7 @@
               <span>${entry.name}</span>
               <span>${entry.points} points</span>
               <span>${entry.itemsSold} items</span>
+              <span>${entry.objectivesCompleted} objectives</span>
             `;
             leaderboardList.appendChild(listItem);
           });
