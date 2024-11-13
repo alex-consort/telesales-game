@@ -166,7 +166,6 @@
     const auth = firebase.auth();
 
     let currentPoints = 0;
-    let userName = "";  // Will hold the concatenated first and last name
 
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -179,14 +178,16 @@
           document.getElementById("points").innerText = currentPoints;
         });
 
-        // Fetch user first and last name and store them as a full name
+        // Fetch user first and last name separately
+        let firstName = "";
+        let lastName = "";
+
         userFirstNameRef.once("value").then((snapshot) => {
-          const firstName = snapshot.val();
-          userLastNameRef.once("value").then((snapshot) => {
-            const lastName = snapshot.val();
-            userName = `${firstName} ${lastName}`;  // Store the full name
-            console.log("User Name:", userName); // Debugging: Log user name
-          });
+          firstName = snapshot.val();
+        });
+
+        userLastNameRef.once("value").then((snapshot) => {
+          lastName = snapshot.val();
         });
 
         fetchProducts();
@@ -277,11 +278,12 @@
           const newTotalPoints = currentUserPoints + points;
           userPointsRef.set(newTotalPoints).then(() => {
             document.getElementById("points").innerText = newTotalPoints;
-            // Record the action in master history with full name
+            // Record the action in master history with firstName and lastName
             masterHistoryRef.push({
               actionType: 'Earn Points',
               productName: productName,
-              userName: userName,  // Storing the full name of the user
+              firstName: firstName,  // Storing first name separately
+              lastName: lastName,    // Storing last name separately
               points: points,
               purchaseDate: new Date().toISOString(),
               erpStatus: 'Pending'
