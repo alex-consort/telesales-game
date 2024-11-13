@@ -168,9 +168,9 @@
           dataList.innerHTML += `
             <tr>
               <td>${data.actionType}</td>
-              <td>${data.productName}</td>
-              <td>${data.firstName} ${data.lastName}</td>
-              <td>${data.points}</td>
+              <td>${data.itemName || 'undefined'}</td>
+              <td>${data.firstName || 'Unknown'} ${data.lastName || 'Unknown'}</td>
+              <td>${data.pointsSpent || 'undefined'}</td>
               <td>${formattedDate}</td>
             </tr>`;
         });
