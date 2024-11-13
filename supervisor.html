@@ -55,6 +55,11 @@
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
       text-align: left;
     }
+    .player-card {
+      margin-bottom: 20px; /* Additional spacing for each player */
+      padding-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+    }
     button {
       padding: 10px 20px;
       color: #fff;
@@ -172,7 +177,7 @@
           const playerData = childSnapshot.val();
           const playerId = childSnapshot.key;
           playersList.innerHTML += `
-            <div>
+            <div class="player-card">
               <strong>${playerData.firstName} ${playerData.lastName}</strong>
               <p>Points: <span id="points_${playerId}">${playerData.points}</span></p>
               <input type="number" id="adjustPoints_${playerId}" placeholder="Adjust Points">
@@ -181,6 +186,42 @@
             </div>`;
         });
       });
+    }
+
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div class="player-card">
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
+
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid product name and points.");
+        return;
+      }
+
+      db.ref("products").push({ name, points })
+        .then(() => {
+          alert("Product added successfully!");
+          document.getElementById("productName").value = "";
+          document.getElementById("productPoints").value = "";
+          fetchProducts();
+        });
     }
 
     function adjustPoints(playerId) {
@@ -209,8 +250,8 @@
       }
     }
 
-    // Call fetch functions for initial data load
     fetchPlayers();
+    fetchProducts();
   </script>
 </body>
 </html>
