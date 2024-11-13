@@ -167,10 +167,10 @@
 
           dataList.innerHTML += `
             <tr>
-              <td>${data.actionType}</td>
-              <td>${data.itemName || 'undefined'}</td>
+              <td>${data.actionType || 'undefined'}</td>
+              <td>${data.productName || data.itemName || 'undefined'}</td>
               <td>${data.firstName || 'Unknown'} ${data.lastName || 'Unknown'}</td>
-              <td>${data.pointsSpent || 'undefined'}</td>
+              <td>${data.points || data.pointsSpent || 'undefined'}</td>
               <td>${formattedDate}</td>
             </tr>`;
         });
