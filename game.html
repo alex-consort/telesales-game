@@ -151,14 +151,14 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
-      authDomain: "telesalesgame-a09f2.firebaseapp.com",
-      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.appspot.com",
-      messagingSenderId: "1097332097301",
-      appId: "1:1097332097301:web:51b0151499e33f7851291c",
-      measurementId: "G-7LNG5176PW"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -166,37 +166,35 @@
     const auth = firebase.auth();
 
     let currentPoints = 0;
+    let firstName = ""; // Store firstName globally
+    let lastName = ""; // Store lastName globally
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        const userFirstNameRef = db.ref("users/" + user.uid + "/firstName");
-        const userLastNameRef = db.ref("users/" + user.uid + "/lastName");
-
-        userPointsRef.on("value", (snapshot) => {
+        const userRef = db.ref("users/" + user.uid);
+        
+        userRef.child("points").on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
         });
 
-        // Fetch user first and last name
-        userFirstNameRef.once("value").then((snapshot) => {
-          const firstName = snapshot.val();
-          userLastNameRef.once("value").then((snapshot) => {
-            const lastName = snapshot.val();
-            console.log("First Name:", firstName, "Last Name:", lastName); // Debugging: Log names
-
-            fetchProducts(firstName, lastName);
-            fetchShortDatedProducts(firstName, lastName);
-            fetchObjectives(firstName, lastName);
-          });
+        // Fetch firstName and lastName once
+        userRef.child("firstName").once("value", (snapshot) => {
+          firstName = snapshot.val() || "Unknown";
+        });
+        userRef.child("lastName").once("value", (snapshot) => {
+          lastName = snapshot.val() || "User";
         });
 
+        fetchProducts();
+        fetchShortDatedProducts();
+        fetchObjectives();
       } else {
         window.location.href = "login.html";
       }
     });
 
-    function fetchProducts(firstName, lastName) {
+    function fetchProducts() {
       const productsRef = db.ref("products");
       productsRef.on("value", (snapshot) => {
         const products = snapshot.val();
@@ -210,14 +208,14 @@
           productCard.innerHTML = `
             <div class="item-name">${product.name}</div>
             <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}', '${firstName}', '${lastName}')">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}')">Earn Points</button>
           `;
           productList.appendChild(productCard);
         }
       });
     }
 
-    function fetchShortDatedProducts(firstName, lastName) {
+    function fetchShortDatedProducts() {
       const shortDatedRef = db.ref("shortDatedProducts");
       shortDatedRef.on("value", (snapshot) => {
         const shortDatedProducts = snapshot.val();
@@ -238,14 +236,14 @@
             <div class="item-details">Price: £${product.price.toFixed(2)}</div>
             <div class="item-details">Expiry Date: ${formattedDate}</div>
             <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}', '${firstName}', '${lastName}')">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}')">Earn Points</button>
           `;
           shortDatedList.appendChild(shortDatedCard);
         }
       });
     }
 
-    function fetchObjectives(firstName, lastName) {
+    function fetchObjectives() {
       const objectivesRef = db.ref("objectives");
       objectivesRef.on("value", (snapshot) => {
         const objectives = snapshot.val();
@@ -259,14 +257,14 @@
           objectiveCard.innerHTML = `
             <div class="item-name">${objective.name}</div>
             <div class="item-details">${objective.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}', '${firstName}', '${lastName}')">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}')">Earn Points</button>
           `;
           objectiveList.appendChild(objectiveCard);
         }
       });
     }
 
-    function earnPoints(points, productName, firstName, lastName) {
+    function earnPoints(points, productName) {
       const user = auth.currentUser;
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
@@ -276,7 +274,7 @@
           const newTotalPoints = currentUserPoints + points;
           userPointsRef.set(newTotalPoints).then(() => {
             document.getElementById("points").innerText = newTotalPoints;
-            // Record the action in master history
+            // Record the action in master history with separate firstName and lastName fields
             masterHistoryRef.push({
               actionType: 'Earn Points',
               productName: productName,
