@@ -105,11 +105,11 @@
 
   <div class="container">
     <h2>Master History Log</h2>
-    <p>This page records all actions (purchases, products sold, objectives completed, short-dated items sold) and stores them permanently. You can export the data as a CSV file.</p>
+    <p>This page records all actions (purchases, products sold, objectives completed, short-dated items sold, and redemptions) and stores them permanently. You can export the data as a CSV file.</p>
 
     <!-- Filter Input -->
     <label for="userFilter">Filter by User Name:</label>
-    <input type="text" id="userFilter" placeholder="Enter user name" oninput="filterHistory()">
+    <input type="text" id="userFilter" placeholder="Enter user name" oninput="applyFilter()">
 
     <!-- Data Display Table -->
     <table id="dataTable">
@@ -150,7 +150,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Function to fetch and display master history data
     function fetchData() {
       const historyRef = db.ref("masterHistory");
       const dataList = document.getElementById("dataList");
@@ -160,36 +159,38 @@
 
         snapshot.forEach(childSnapshot => {
           const data = childSnapshot.val();
-          const dateFormatted = new Date(data.purchaseDate).toLocaleDateString("en-GB");
+          const formattedDate = new Date(data.purchaseDate).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+          });
 
           dataList.innerHTML += `
             <tr>
               <td>${data.actionType}</td>
               <td>${data.productName}</td>
-              <td>${data.firstName || ''} ${data.lastName || ''}</td>
+              <td>${data.firstName} ${data.lastName}</td>
               <td>${data.points}</td>
-              <td>${dateFormatted}</td>
+              <td>${formattedDate}</td>
             </tr>`;
         });
       });
     }
 
-    // Function to filter history by user name
-    function filterHistory() {
-      const filter = document.getElementById("userFilter").value.toLowerCase();
-      const rows = document.getElementById("dataList").getElementsByTagName("tr");
+    function applyFilter() {
+      const filterValue = document.getElementById("userFilter").value.toLowerCase();
+      const rows = document.querySelectorAll("#dataList tr");
 
-      for (const row of rows) {
-        const userCell = row.cells[2].innerText.toLowerCase();
-        row.style.display = userCell.includes(filter) ? "" : "none";
-      }
+      rows.forEach(row => {
+        const userName = row.cells[2].textContent.toLowerCase();
+        row.style.display = userName.includes(filterValue) ? "" : "none";
+      });
     }
 
-    // Function to export data as CSV
     function exportToCSV() {
       const table = document.getElementById("dataTable");
       const rows = table.querySelectorAll("tr");
-      let csvContent = "Action Type, Product Name, User, Points, Date\n";
+      let csvContent = "Action Type,Product Name,User,Points,Date\n";
 
       rows.forEach((row, index) => {
         if (index === 0) return;  // Skip the header row
@@ -198,17 +199,15 @@
         csvContent += rowData + "\n";
       });
 
-      // Create a downloadable CSV file
       const link = document.createElement("a");
       link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
       link.download = "master_history_data.csv";
       link.click();
     }
 
-    // Event listener for export button
     document.getElementById("exportButton").addEventListener("click", exportToCSV);
 
-    // Initialize data fetch
+    // Fetch data on page load
     fetchData();
   </script>
 </body>
