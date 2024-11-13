@@ -258,14 +258,21 @@
       const user = auth.currentUser;
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
-        userPointsRef.once("value").then((snapshot) => {
-          const currentUserPoints = snapshot.val() || 0;
-          const newTotalPoints = currentUserPoints + points;
-          userPointsRef.set(newTotalPoints).then(() => {
-            document.getElementById("points").innerText = newTotalPoints;
+        const userNameRef = db.ref("users/" + user.uid + "/firstName");
 
-            // Add to master history log
-            addToMasterHistory("Earn Points", productName, user.displayName, points);
+        // Retrieve user details
+        userNameRef.once("value").then((snapshot) => {
+          const userName = snapshot.val();
+
+          userPointsRef.once("value").then((snapshot) => {
+            const currentUserPoints = snapshot.val() || 0;
+            const newTotalPoints = currentUserPoints + points;
+            userPointsRef.set(newTotalPoints).then(() => {
+              document.getElementById("points").innerText = newTotalPoints;
+
+              // Add to the Master History
+              addToMasterHistory('Earn Points', productName, userName, points);
+            });
           });
         });
       } else {
@@ -273,19 +280,24 @@
       }
     }
 
-    // Function to add an action to master history log
     function addToMasterHistory(actionType, productName, userName, points) {
-      const historyRef = db.ref("masterHistory");
+      const masterHistoryRef = db.ref("masterHistory");
 
       const newHistoryEntry = {
         actionType: actionType,
         productName: productName,
         userName: userName,
         points: points,
-        date: new Date().toISOString()
+        purchaseDate: new Date().toISOString(),
+        ERPStatus: 'Pending' // Default status
       };
 
-      historyRef.push(newHistoryEntry);
+      // Push the new entry to the master history log
+      masterHistoryRef.push(newHistoryEntry).then(() => {
+        console.log("Action recorded in master history.");
+      }).catch((error) => {
+        console.error("Error adding to master history:", error);
+      });
     }
   </script>
 </body>
