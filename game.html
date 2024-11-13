@@ -183,8 +183,10 @@
           const firstName = snapshot.val();
           userLastNameRef.once("value").then((snapshot) => {
             const lastName = snapshot.val();
-            userName = `${firstName} ${lastName}`;
+            const userName = `${firstName} ${lastName}`;
             console.log("User Name:", userName); // Debugging: Log user name
+            // Store the userName in the global variable for later use
+            window.userName = userName;
           });
         });
 
@@ -276,11 +278,11 @@
           const newTotalPoints = currentUserPoints + points;
           userPointsRef.set(newTotalPoints).then(() => {
             document.getElementById("points").innerText = newTotalPoints;
-            // Record the action in master history
+            // Record the action in master history with firstName and lastName
             masterHistoryRef.push({
               actionType: 'Earn Points',
               productName: productName,
-              userName: `${user.firstName} ${user.lastName}`,
+              userName: window.userName, // Use the concatenated firstName and lastName
               points: points,
               purchaseDate: new Date().toISOString(),
               erpStatus: 'Pending'
