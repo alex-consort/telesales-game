@@ -154,7 +154,7 @@
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      storageBucket: "telesalesgame-a09f2.appspot.com",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
@@ -165,6 +165,8 @@
     const auth = firebase.auth();
 
     let currentPoints = 0;
+    let firstName = "Unknown";
+    let lastName = "Unknown";
 
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -173,6 +175,14 @@
           currentPoints = snapshot.val() || 0;
           document.getElementById("userPoints").innerText = currentPoints;
         });
+
+        // Fetch user's first and last name
+        db.ref("users/" + user.uid).once("value").then((snapshot) => {
+          const userData = snapshot.val();
+          firstName = userData.firstName || "Unknown";
+          lastName = userData.lastName || "Unknown";
+        });
+
         fetchShopItems();
         fetchPurchaseHistory();
       } else {
@@ -184,7 +194,6 @@
       const shopItemsDiv = document.getElementById("shopItems");
       shopItemsDiv.innerHTML = "";
 
-      // Fetch dynamic shop items from Firebase
       const shopItemsRef = db.ref("shopItems");
       shopItemsRef.on("value", (snapshot) => {
         snapshot.forEach((childSnapshot) => {
@@ -226,26 +235,19 @@
           return;
         }
       }).then(() => {
+        // Log the redemption in the purchases and masterHistory nodes
         const redemptionData = {
           userId: user.uid,
           itemId: itemId,
-          itemName: itemName,
-          pointsSpent: pointsRequired,
-          purchaseDate: new Date().toISOString()
-        };
-        
-        purchasesRef.push(redemptionData);
-
-        // Ensure masterHistory node exists and add redemption entry
-        masterHistoryRef.push({
-          actionType: "Redemption",
           productName: itemName,
-          firstName: user.displayName ? user.displayName.split(" ")[0] : "Unknown",
-          lastName: user.displayName ? user.displayName.split(" ")[1] || "Unknown" : "Unknown",
-          points: pointsRequired,
-          purchaseDate: new Date().toISOString()
-        });
-
+          points: -pointsRequired,
+          purchaseDate: new Date().toISOString(),
+          firstName: firstName,
+          lastName: lastName,
+          actionType: "Redemption"
+        };
+        purchasesRef.push(redemptionData);
+        masterHistoryRef.push(redemptionData);
         alert("Redemption successful!");
       }).catch((error) => console.error("Redemption failed:", error));
     }
@@ -264,7 +266,7 @@
             year: "numeric"
           });
           purchaseHistory.innerHTML += `
-            <li>${purchase.itemName} - ${purchase.pointsSpent} Points (Redeemed on ${formattedDate})</li>
+            <li>${purchase.productName} - ${-purchase.points} Points (Redeemed on ${formattedDate})</li>
           `;
         });
       });
