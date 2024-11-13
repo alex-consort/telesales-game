@@ -170,7 +170,6 @@
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        // Fetch user's points and display
         const userRef = db.ref("users/" + user.uid);
         userRef.once("value").then((snapshot) => {
           const userData = snapshot.val();
@@ -225,30 +224,30 @@
       const masterHistoryRef = db.ref("masterHistory");
 
       userPointsRef.transaction((currentPoints) => {
-        if (currentPoints && currentPoints >= pointsRequired) {
-          // Deduct points if the user has enough
+        if (currentPoints >= pointsRequired) {
           return currentPoints - pointsRequired;
         } else {
+          throw new Error("Not enough points");
+        }
+      }).then(() => {
+        const redemptionData = {
+          actionType: "Redemption",
+          productName: itemName,
+          points: -pointsRequired,
+          purchaseDate: new Date().toISOString(),
+          firstName: firstName,
+          lastName: lastName
+        };
+        purchasesRef.push(redemptionData);
+        masterHistoryRef.push(redemptionData);
+        alert("Redemption successful!");
+      }).catch((error) => {
+        if (error.message === "Not enough points") {
           alert("Not enough points to redeem this item.");
-          return; // Abort the transaction if points are insufficient
+        } else {
+          console.error("Redemption failed:", error);
         }
-      }).then((result) => {
-        if (result.committed && result.snapshot.val() === currentPoints - pointsRequired) {
-          // Successful redemption: record it in both purchases and masterHistory
-          const redemptionData = {
-            actionType: "Redemption",
-            productName: itemName,
-            points: -pointsRequired,
-            purchaseDate: new Date().toISOString(),
-            firstName: firstName,
-            lastName: lastName
-          };
-          purchasesRef.push(redemptionData);
-          masterHistoryRef.push(redemptionData);
-          alert("Redemption successful!");
-          fetchPurchaseHistory();
-        }
-      }).catch((error) => console.error("Redemption failed:", error));
+      });
     }
 
     function fetchPurchaseHistory() {
