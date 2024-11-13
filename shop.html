@@ -225,11 +225,12 @@
       const masterHistoryRef = db.ref("masterHistory");
 
       userPointsRef.transaction((currentPoints) => {
-        if (currentPoints >= pointsRequired) {
+        if (currentPoints && currentPoints >= pointsRequired) {
           // Deduct points if the user has enough
           return currentPoints - pointsRequired;
         } else {
-          return currentPoints; // No change if not enough points
+          alert("Not enough points to redeem this item.");
+          return; // Abort the transaction if points are insufficient
         }
       }).then((result) => {
         if (result.committed && result.snapshot.val() === currentPoints - pointsRequired) {
@@ -246,9 +247,6 @@
           masterHistoryRef.push(redemptionData);
           alert("Redemption successful!");
           fetchPurchaseHistory();
-        } else {
-          // Not enough points - no action taken
-          alert("Not enough points!");
         }
       }).catch((error) => console.error("Redemption failed:", error));
     }
