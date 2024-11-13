@@ -62,6 +62,27 @@
       margin-bottom: 20px;
       text-align: left;
     }
+    button {
+      padding: 10px 20px;
+      color: #fff;
+      background-color: #274358;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #FF4E59;
+    }
+    input {
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #97CFF3;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
     table {
       width: 100%;
       margin-top: 20px;
@@ -109,6 +130,16 @@
   </header>
 
   <div class="dashboard">
+    <!-- Add and Remove Shop Items -->
+    <div class="card" id="productsCard">
+      <h2>Manage Shop Items</h2>
+      <div id="productList"></div>
+      <h3>Add New Product</h3>
+      <input type="text" id="productName" placeholder="Product Name">
+      <input type="number" id="productPoints" placeholder="Points Required">
+      <button onclick="addProduct()">Add Product</button>
+    </div>
+
     <!-- Redemption Table -->
     <div class="card" id="redemptionCard">
       <h2>Redemptions Made</h2>
@@ -142,23 +173,71 @@
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Fetch and display redemptions from the purchases node
+    // Fetch and display products from shopItems
+    function fetchProducts() {
+      const productsRef = db.ref("shopItems");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div>
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
+
+    // Add a new product to shopItems
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid product name and points.");
+        return;
+      }
+
+      db.ref("shopItems").push({
+        name: name,
+        points: points
+      }).then(() => {
+        alert("Product added successfully!");
+        document.getElementById("productName").value = "";
+        document.getElementById("productPoints").value = "";
+        fetchProducts();
+      }).catch((error) => console.error("Error adding product:", error));
+    }
+
+    // Remove a product from shopItems
+    function removeProduct(productId) {
+      db.ref("shopItems/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+          fetchProducts();
+        })
+        .catch((error) => console.error("Error removing product:", error));
+    }
+
+    // Fetch and display redemptions
     function fetchRedemptions() {
       const purchasesRef = db.ref("purchases");
-      purchasesRef.once("value").then((snapshot) => {
+      purchasesRef.on("value", (snapshot) => {
         const redemptionList = document.getElementById("redemptionList");
         redemptionList.innerHTML = "";
 
         snapshot.forEach((childSnapshot) => {
           const redemption = childSnapshot.val();
           const redemptionId = childSnapshot.key;
-          const productName = redemption.productName || redemption.itemName;
+          const productName = redemption.itemName;
           const userId = redemption.userId;
-          const status = redemption.status || "Pending";
           const redemptionDate = new Date(redemption.purchaseDate);
           const formattedDate = redemptionDate.toLocaleDateString("en-GB", {
             day: "2-digit",
@@ -169,14 +248,14 @@
           // Fetch user details
           db.ref('users/' + userId).once('value').then(userSnapshot => {
             const user = userSnapshot.val();
-            const userName = `${user?.firstName || "Unknown"} ${user?.lastName || "Unknown"}`;
+            const userName = `${user.firstName || 'Unknown'} ${user.lastName || ''}`;
 
             redemptionList.innerHTML += `
               <tr>
                 <td>${productName}</td>
                 <td>${userName}</td>
                 <td>${formattedDate}</td>
-                <td>${status}</td>
+                <td>${redemption.status || 'Pending'}</td>
                 <td>
                   <button class="complete-button" onclick="markAsComplete('${redemptionId}')">Complete</button>
                   <button class="clear-button" onclick="clearRedemption('${redemptionId}')">Clear</button>
@@ -190,24 +269,30 @@
     // Mark redemption as complete
     function markAsComplete(redemptionId) {
       const redemptionRef = db.ref("purchases/" + redemptionId);
-      redemptionRef.update({ status: "Completed" }).then(() => {
-        alert("Redemption marked as completed!");
-        fetchRedemptions();
-      }).catch(error => {
-        console.error("Error marking redemption:", error);
-        alert("Error updating redemption status.");
-      });
+
+      redemptionRef.update({ status: "Completed" })
+        .then(() => {
+          alert("Redemption marked as completed!");
+          fetchRedemptions();
+        })
+        .catch((error) => {
+          console.error("Error marking redemption:", error);
+          alert("Error updating redemption status.");
+        });
     }
 
     // Clear redemption
     function clearRedemption(redemptionId) {
-      db.ref("purchases/" + redemptionId).remove().then(() => {
-        alert("Redemption cleared!");
-        fetchRedemptions();
-      }).catch(error => console.error("Error clearing redemption:", error));
+      db.ref("purchases/" + redemptionId).remove()
+        .then(() => {
+          alert("Redemption cleared!");
+          fetchRedemptions();
+        })
+        .catch((error) => console.error("Error clearing redemption:", error));
     }
 
-    // Initial fetch of redemptions
+    // Initial fetch
+    fetchProducts();
     fetchRedemptions();
   </script>
 </body>
