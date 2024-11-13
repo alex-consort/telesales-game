@@ -154,7 +154,7 @@
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
+      storageBucket: "telesalesgame-a09f2.appspot.com",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
@@ -224,30 +224,31 @@
       const purchasesRef = db.ref("purchases");
       const masterHistoryRef = db.ref("masterHistory");
 
-      userPointsRef.transaction((current) => {
-        if (current >= pointsRequired) {
-          currentPoints = current - pointsRequired;
-          return currentPoints;
+      userPointsRef.transaction((currentPoints) => {
+        if (currentPoints >= pointsRequired) {
+          // Deduct points if the user has enough
+          return currentPoints - pointsRequired;
         } else {
-          alert("Not enough points!");
-          return current;  // Abort if not enough points
+          return currentPoints; // No change if not enough points
         }
       }).then((result) => {
-        if (result.committed) {  // Only proceed if transaction was successful
+        if (result.committed && result.snapshot.val() === currentPoints - pointsRequired) {
+          // Successful redemption: record it in both purchases and masterHistory
           const redemptionData = {
             actionType: "Redemption",
             productName: itemName,
             points: -pointsRequired,
             purchaseDate: new Date().toISOString(),
             firstName: firstName,
-            lastName: lastName,
-            userId: user.uid,
-            status: "Pending"
+            lastName: lastName
           };
           purchasesRef.push(redemptionData);
           masterHistoryRef.push(redemptionData);
-          document.getElementById("userPoints").innerText = currentPoints;  // Update points display
           alert("Redemption successful!");
+          fetchPurchaseHistory();
+        } else {
+          // Not enough points - no action taken
+          alert("Not enough points!");
         }
       }).catch((error) => console.error("Redemption failed:", error));
     }
