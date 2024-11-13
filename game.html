@@ -170,7 +170,6 @@
     auth.onAuthStateChanged((user) => {
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
-
         userPointsRef.on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
@@ -191,18 +190,16 @@
         const productList = document.getElementById("productList");
         productList.innerHTML = "";
 
-        if (products) {
-          for (const key in products) {
-            const product = products[key];
-            const productCard = document.createElement("div");
-            productCard.className = "item-card";
-            productCard.innerHTML = `
-              <div class="item-name">${product.name}</div>
-              <div class="item-details">${product.points} Points</div>
-              <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}')">Earn Points</button>
-            `;
-            productList.appendChild(productCard);
-          }
+        for (const key in products) {
+          const product = products[key];
+          const productCard = document.createElement("div");
+          productCard.className = "item-card";
+          productCard.innerHTML = `
+            <div class="item-name">${product.name}</div>
+            <div class="item-details">${product.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}', 'itemsSold')">Earn Points</button>
+          `;
+          productList.appendChild(productCard);
         }
       });
     }
@@ -214,18 +211,16 @@
         const shortDatedList = document.getElementById("shortDatedList");
         shortDatedList.innerHTML = "";
 
-        if (shortDatedProducts) {
-          for (const key in shortDatedProducts) {
-            const product = shortDatedProducts[key];
-            const shortDatedCard = document.createElement("div");
-            shortDatedCard.className = "item-card";
-            shortDatedCard.innerHTML = `
-              <div class="item-name">${product.description}</div>
-              <div class="item-details">Points: ${product.points}</div>
-              <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}')">Earn Points</button>
-            `;
-            shortDatedList.appendChild(shortDatedCard);
-          }
+        for (const key in shortDatedProducts) {
+          const product = shortDatedProducts[key];
+          const shortDatedCard = document.createElement("div");
+          shortDatedCard.className = "item-card";
+          shortDatedCard.innerHTML = `
+            <div class="item-name">${product.description}</div>
+            <div class="item-details">Points: ${product.points}</div>
+            <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}', 'itemsSold')">Earn Points</button>
+          `;
+          shortDatedList.appendChild(shortDatedCard);
         }
       });
     }
@@ -237,26 +232,25 @@
         const objectiveList = document.getElementById("objectiveList");
         objectiveList.innerHTML = "";
 
-        if (objectives) {
-          for (const key in objectives) {
-            const objective = objectives[key];
-            const objectiveCard = document.createElement("div");
-            objectiveCard.className = "item-card";
-            objectiveCard.innerHTML = `
-              <div class="item-name">${objective.name}</div>
-              <div class="item-details">${objective.points} Points</div>
-              <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}')">Earn Points</button>
-            `;
-            objectiveList.appendChild(objectiveCard);
-          }
+        for (const key in objectives) {
+          const objective = objectives[key];
+          const objectiveCard = document.createElement("div");
+          objectiveCard.className = "item-card";
+          objectiveCard.innerHTML = `
+            <div class="item-name">${objective.name}</div>
+            <div class="item-details">${objective.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}', 'objectivesCompleted')">Earn Points</button>
+          `;
+          objectiveList.appendChild(objectiveCard);
         }
       });
     }
 
-    function earnPoints(points, productName) {
+    function earnPoints(points, productName, updateField) {
       const user = auth.currentUser;
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
+        const userFieldRef = db.ref("users/" + user.uid + "/" + updateField);
         const masterHistoryRef = db.ref("masterHistory");
         const userRef = db.ref("users/" + user.uid);
 
@@ -268,6 +262,12 @@
           userPointsRef.transaction((currentPoints) => {
             return (currentPoints || 0) + points;
           }).then(() => {
+            // Increment the specified field (either itemsSold or objectivesCompleted)
+            userFieldRef.transaction((currentValue) => {
+              return (currentValue || 0) + 1;
+            });
+
+            // Log the action in the history
             masterHistoryRef.push({
               actionType: 'Earn Points',
               productName: productName,
@@ -276,7 +276,6 @@
               points: points,
               purchaseDate: new Date().toISOString()
             });
-            document.getElementById("points").innerText = currentPoints;
           });
         });
       } else {
