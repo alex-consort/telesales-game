@@ -170,19 +170,11 @@
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        const userRef = db.ref("users/" + user.uid);
-        
-        // Fetch user points and name details
-        userRef.once("value").then(snapshot => {
-          const userData = snapshot.val();
-          currentPoints = userData.points || 0;
+        const userPointsRef = db.ref("users/" + user.uid + "/points");
+        userPointsRef.on("value", (snapshot) => {
+          currentPoints = snapshot.val() || 0;
           document.getElementById("userPoints").innerText = currentPoints;
-
-          // Store first and last name for later use
-          window.userFirstName = userData.firstName || "Unknown";
-          window.userLastName = userData.lastName || "Unknown";
         });
-
         fetchShopItems();
         fetchPurchaseHistory();
       } else {
@@ -194,6 +186,7 @@
       const shopItemsDiv = document.getElementById("shopItems");
       shopItemsDiv.innerHTML = "";
 
+      // Fetch items from Firebase shopItems node
       const shopItemsRef = db.ref("shopItems");
       shopItemsRef.on("value", (snapshot) => {
         snapshot.forEach((childSnapshot) => {
@@ -227,37 +220,42 @@
       const purchasesRef = db.ref("purchases");
       const masterHistoryRef = db.ref("masterHistory");
 
-      userPointsRef.transaction((currentPoints) => {
-        if (currentPoints >= pointsRequired) {
-          return currentPoints - pointsRequired;
+      userPointsRef.transaction((points) => {
+        if (points && points >= pointsRequired) {
+          return points - pointsRequired;
         } else {
-          console.log(`Current points: ${currentPoints}, required: ${pointsRequired}`);
           alert("Not enough points to redeem this item.");
-          return;
+          return; // Abort the transaction
         }
-      }).then((result) => {
-        if (result.committed) {
-          purchasesRef.push({
+      }, (error, committed, snapshot) => {
+        if (error) {
+          console.error("Transaction failed: ", error);
+        } else if (committed) {
+          const newPoints = snapshot.val(); // Updated points after deduction
+          currentPoints = newPoints;
+          document.getElementById("userPoints").innerText = currentPoints;
+
+          // Log the redemption in both purchases and masterHistory nodes
+          const redemptionData = {
             userId: user.uid,
             itemId: itemId,
             itemName: itemName,
             pointsSpent: pointsRequired,
-            purchaseDate: new Date().toISOString()
-          });
+            purchaseDate: new Date().toISOString(),
+            firstName: user.displayName ? user.displayName.split(" ")[0] : "Unknown",
+            lastName: user.displayName ? user.displayName.split(" ")[1] : "Unknown"
+          };
+
+          purchasesRef.push(redemptionData);
           masterHistoryRef.push({
+            ...redemptionData,
             actionType: "Redemption",
-            productName: itemName,
-            points: -pointsRequired,
-            firstName: window.userFirstName,
-            lastName: window.userLastName,
-            purchaseDate: new Date().toISOString()
+            pointsSpent: -pointsRequired // Log as a negative for clarity in history
           });
+
           alert("Redemption successful!");
-          // Update displayed points after redemption
-          currentPoints -= pointsRequired;
-          document.getElementById("userPoints").innerText = currentPoints;
         }
-      }).catch((error) => console.error("Redemption failed:", error));
+      });
     }
 
     function fetchPurchaseHistory() {
