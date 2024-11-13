@@ -55,8 +55,13 @@
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
       text-align: left;
     }
-    .player-card {
-      margin-bottom: 20px; /* Additional spacing for each player */
+    .add-item-section {
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .player-card, .item-card {
+      margin-bottom: 20px; /* Additional spacing for each player or item */
       padding-bottom: 20px;
       border-bottom: 1px solid #ddd;
     }
@@ -78,9 +83,9 @@
       margin-top: 10px;
     }
     input {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0;
       border: 1px solid #97CFF3;
       border-radius: 5px;
       box-sizing: border-box;
@@ -118,33 +123,36 @@
     <!-- Product Section with Add Product functionality -->
     <div class="card" id="productsCard">
       <h2>Available Products</h2>
+      <div class="add-item-section">
+        <input type="text" id="productName" placeholder="Product Name">
+        <input type="number" id="productPoints" placeholder="Points">
+        <button onclick="addProduct()">Add Product</button>
+      </div>
       <div id="productList"></div>
-      <h3>Add New Product</h3>
-      <input type="text" id="productName" placeholder="Product Name">
-      <input type="number" id="productPoints" placeholder="Points">
-      <button onclick="addProduct()">Add Product</button>
     </div>
 
     <!-- Objective Section with Add Objective functionality -->
     <div class="card" id="objectivesCard">
       <h2>Available Objectives</h2>
+      <div class="add-item-section">
+        <input type="text" id="objectiveName" placeholder="Objective Name">
+        <input type="number" id="objectivePoints" placeholder="Points">
+        <button onclick="addObjective()">Add Objective</button>
+      </div>
       <div id="objectivesList"></div>
-      <h3>Add New Objective</h3>
-      <input type="text" id="objectiveName" placeholder="Objective Name">
-      <input type="number" id="objectivePoints" placeholder="Points">
-      <button onclick="addObjective()">Add Objective</button>
     </div>
 
     <!-- Short Dated Product Section -->
     <div class="card" id="shortDatedCard">
       <h2>Available Short Dated Products</h2>
+      <div class="add-item-section">
+        <input type="text" id="shortDatedDescription" placeholder="Product Description">
+        <input type="date" id="bestBeforeDate" placeholder="Best Before Date (dd/MM/yy)">
+        <input type="number" id="reducedPrice" placeholder="Reduced Price (£)" step="0.01">
+        <input type="number" id="shortDatedPoints" placeholder="Points">
+        <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
+      </div>
       <div id="shortDatedProductsList"></div>
-      <h3>Add New Short Dated Product</h3>
-      <input type="text" id="shortDatedDescription" placeholder="Product Description">
-      <input type="date" id="bestBeforeDate" placeholder="Best Before Date (dd/MM/yy)">
-      <input type="number" id="reducedPrice" placeholder="Reduced Price (£)" step="0.01">
-      <input type="number" id="shortDatedPoints" placeholder="Points">
-      <button onclick="addShortDatedProduct()">Add Short Dated Product</button>
     </div>
   </div>
 
@@ -198,7 +206,7 @@
           const product = childSnapshot.val();
           const productId = childSnapshot.key;
           productList.innerHTML += `
-            <div class="player-card">
+            <div class="item-card">
               <strong>${product.name}</strong> - ${product.points} Points
               <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
             </div>`;
@@ -220,35 +228,18 @@
           alert("Product added successfully!");
           document.getElementById("productName").value = "";
           document.getElementById("productPoints").value = "";
-          fetchProducts();
         });
     }
 
-    function adjustPoints(playerId) {
-      const pointsInput = document.getElementById(`adjustPoints_${playerId}`);
-      const change = parseInt(pointsInput.value, 10) || 0;
-
-      db.ref("users/" + playerId).once("value").then((snapshot) => {
-        const currentPoints = snapshot.val().points || 0;
-        const newPoints = currentPoints + change;
-
-        db.ref("users/" + playerId).update({ points: newPoints })
-          .then(() => {
-            alert("Points adjusted successfully!");
-            fetchPlayers();
-          });
-      });
+    function removeProduct(productId) {
+      db.ref("products/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+        });
     }
 
-    function removePlayer(playerId) {
-      if (confirm("Are you sure you want to remove this player?")) {
-        db.ref("users/" + playerId).remove()
-          .then(() => {
-            alert("Player removed successfully!");
-            fetchPlayers();
-          });
-      }
-    }
+    // Similar fetch and add functions for Objectives and Short-Dated Products
+    // Replace the following placeholders: YOUR_API_KEY, YOUR_AUTH_DOMAIN, etc.
 
     fetchPlayers();
     fetchProducts();
