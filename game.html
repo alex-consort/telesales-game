@@ -166,7 +166,6 @@
     const auth = firebase.auth();
 
     let currentPoints = 0;
-    let userName = '';
 
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -184,7 +183,7 @@
           const firstName = snapshot.val();
           userLastNameRef.once("value").then((snapshot) => {
             const lastName = snapshot.val();
-            userName = `${firstName} ${lastName}`; // Save the full name
+            userName = `${firstName} ${lastName}`;
             console.log("User Name:", userName); // Debugging: Log user name
           });
         });
@@ -281,7 +280,7 @@
             masterHistoryRef.push({
               actionType: 'Earn Points',
               productName: productName,
-              userName: userName, // Use the full name here
+              userName: `${user.firstName} ${user.lastName}`,
               points: points,
               purchaseDate: new Date().toISOString(),
               erpStatus: 'Pending'
