@@ -173,7 +173,7 @@
     auth.onAuthStateChanged((user) => {
       if (user) {
         const userRef = db.ref("users/" + user.uid);
-        userRef.once("value").then((snapshot) => {
+        userRef.on("value", (snapshot) => {
           const userData = snapshot.val();
           currentPoints = userData.points || 0;
           firstName = userData.firstName || "Unknown";
@@ -229,32 +229,26 @@
           return points - pointsRequired;
         } else {
           alert("Not enough points to redeem this item.");
-          return; // Abort the transaction
+          return;
         }
-      }, (error, committed, snapshot) => {
-        if (error) {
-          console.error("Transaction failed: ", error);
-        } else if (committed) {
+      }).then((result) => {
+        if (result.committed) {
           const redemptionData = {
             userId: user.uid,
             itemId: itemId,
             itemName: itemName,
-            pointsSpent: pointsRequired,
+            pointsSpent: -pointsRequired,
             purchaseDate: new Date().toISOString(),
             firstName: firstName,
             lastName: lastName
           };
 
           purchasesRef.push(redemptionData);
-          masterHistoryRef.push({
-            ...redemptionData,
-            actionType: "Redemption",
-            pointsSpent: -pointsRequired
-          });
+          masterHistoryRef.push({ ...redemptionData, actionType: "Redemption" });
 
           alert("Redemption successful!");
         }
-      });
+      }).catch((error) => console.error("Redemption failed:", error));
     }
 
     function fetchPurchaseHistory() {
