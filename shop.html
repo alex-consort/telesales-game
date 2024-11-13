@@ -150,14 +150,14 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
-      authDomain: "telesalesgame-a09f2.firebaseapp.com",
-      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
-      messagingSenderId: "1097332097301",
-      appId: "1:1097332097301:web:51b0151499e33f7851291c",
-      measurementId: "G-7LNG5176PW"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      databaseURL: "YOUR_DATABASE_URL",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -224,25 +224,31 @@
       const purchasesRef = db.ref("purchases");
       const masterHistoryRef = db.ref("masterHistory");
 
-      userPointsRef.transaction((currentPoints) => {
-        if (currentPoints >= pointsRequired) {
-          return currentPoints - pointsRequired;
+      userPointsRef.transaction((current) => {
+        if (current >= pointsRequired) {
+          currentPoints = current - pointsRequired;
+          return currentPoints;
         } else {
           alert("Not enough points!");
-          return;
+          return current;  // Abort if not enough points
         }
-      }).then(() => {
-        const redemptionData = {
-          actionType: "Redemption",
-          productName: itemName,
-          points: -pointsRequired,
-          purchaseDate: new Date().toISOString(),
-          firstName: firstName,
-          lastName: lastName
-        };
-        purchasesRef.push(redemptionData);
-        masterHistoryRef.push(redemptionData); // Record in masterHistory
-        alert("Redemption successful!");
+      }).then((result) => {
+        if (result.committed) {  // Only proceed if transaction was successful
+          const redemptionData = {
+            actionType: "Redemption",
+            productName: itemName,
+            points: -pointsRequired,
+            purchaseDate: new Date().toISOString(),
+            firstName: firstName,
+            lastName: lastName,
+            userId: user.uid,
+            status: "Pending"
+          };
+          purchasesRef.push(redemptionData);
+          masterHistoryRef.push(redemptionData);
+          document.getElementById("userPoints").innerText = currentPoints;  // Update points display
+          alert("Redemption successful!");
+        }
       }).catch((error) => console.error("Redemption failed:", error));
     }
 
