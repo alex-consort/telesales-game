@@ -231,6 +231,7 @@
         if (currentPoints >= pointsRequired) {
           return currentPoints - pointsRequired;
         } else {
+          console.log(`Current points: ${currentPoints}, required: ${pointsRequired}`);
           alert("Not enough points to redeem this item.");
           return;
         }
@@ -252,6 +253,9 @@
             purchaseDate: new Date().toISOString()
           });
           alert("Redemption successful!");
+          // Update displayed points after redemption
+          currentPoints -= pointsRequired;
+          document.getElementById("userPoints").innerText = currentPoints;
         }
       }).catch((error) => console.error("Redemption failed:", error));
     }
