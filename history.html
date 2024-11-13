@@ -116,6 +116,7 @@
           <th>User</th>
           <th>Points</th>
           <th>Date</th>
+          <th>ERP Status</th>
         </tr>
       </thead>
       <tbody id="dataList">
@@ -146,18 +147,26 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
+    // Function to ensure the masterHistory node exists
+    function initializeMasterHistory() {
+      const historyRef = db.ref("masterHistory");
+      historyRef.once("value", snapshot => {
+        if (!snapshot.exists()) {
+          // If the masterHistory node doesn't exist, create it
+          db.ref("masterHistory").set({});
+        }
+      });
+    }
+
     // Function to fetch all data from the master history node
     function fetchData() {
       const historyRef = db.ref("masterHistory");
-      const purchaseHistoryRef = historyRef.child("purchaseHistory");
-      const productSoldHistoryRef = historyRef.child("productSoldHistory");
-      const objectivesCompleteHistoryRef = historyRef.child("objectivesCompleteHistory");
-      const shortDatedSoldHistoryRef = historyRef.child("shortDatedSoldHistory");
+      const dataList = document.getElementById("dataList");
 
-      // Fetch purchase history
-      purchaseHistoryRef.once("value", (snapshot) => {
-        const dataList = document.getElementById("dataList");
-        snapshot.forEach((childSnapshot) => {
+      historyRef.once("value", snapshot => {
+        dataList.innerHTML = ""; // Clear existing data
+
+        snapshot.forEach(childSnapshot => {
           const data = childSnapshot.val();
           dataList.innerHTML += `
             <tr>
@@ -165,62 +174,15 @@
               <td>${data.productName}</td>
               <td>${data.userName}</td>
               <td>${data.points}</td>
-              <td>${data.purchaseDate}</td>
-            </tr>`;
-        });
-      });
-
-      // Fetch product sold history
-      productSoldHistoryRef.once("value", (snapshot) => {
-        const dataList = document.getElementById("dataList");
-        snapshot.forEach((childSnapshot) => {
-          const data = childSnapshot.val();
-          dataList.innerHTML += `
-            <tr>
-              <td>${data.actionType}</td>
-              <td>${data.productName}</td>
-              <td>${data.userName}</td>
-              <td>${data.points}</td>
-              <td>${data.saleDate}</td>
-            </tr>`;
-        });
-      });
-
-      // Fetch objectives completed history
-      objectivesCompleteHistoryRef.once("value", (snapshot) => {
-        const dataList = document.getElementById("dataList");
-        snapshot.forEach((childSnapshot) => {
-          const data = childSnapshot.val();
-          dataList.innerHTML += `
-            <tr>
-              <td>${data.actionType}</td>
-              <td>${data.objectiveName}</td>
-              <td>${data.userName}</td>
-              <td>${data.points}</td>
-              <td>${data.completionDate}</td>
-            </tr>`;
-        });
-      });
-
-      // Fetch short-dated sold history
-      shortDatedSoldHistoryRef.once("value", (snapshot) => {
-        const dataList = document.getElementById("dataList");
-        snapshot.forEach((childSnapshot) => {
-          const data = childSnapshot.val();
-          dataList.innerHTML += `
-            <tr>
-              <td>${data.actionType}</td>
-              <td>${data.productName}</td>
-              <td>${data.userName}</td>
-              <td>${data.points}</td>
-              <td>${data.saleDate}</td>
+              <td>${data.date}</td>
+              <td>${data.erpStatus || 'Pending'}</td>
             </tr>`;
         });
       });
     }
 
     // Function to add an action to the Firebase masterHistory
-    function addActionToHistory(actionType, productName, userName, points, date) {
+    function addActionToHistory(actionType, productName, userName, points, date, erpStatus) {
       const historyRef = db.ref("masterHistory");
       const newActionRef = historyRef.push();
       newActionRef.set({
@@ -228,7 +190,8 @@
         productName: productName,
         userName: userName,
         points: points,
-        date: date
+        date: date,
+        erpStatus: erpStatus // 'Pending', 'Verified', etc.
       });
     }
 
@@ -236,7 +199,7 @@
     function exportToCSV() {
       const table = document.getElementById("dataTable");
       const rows = table.querySelectorAll("tr");
-      let csvContent = "Action Type, Product Name, User, Points, Date\n";
+      let csvContent = "Action Type, Product Name, User, Points, Date, ERP Status\n";
 
       rows.forEach((row, index) => {
         if (index === 0) return;  // Skip the header row
@@ -255,7 +218,8 @@
     // Event listener for export button
     document.getElementById("exportButton").addEventListener("click", exportToCSV);
 
-    // Initialize data fetch
+    // Initialize Firebase and fetch the data
+    initializeMasterHistory();
     fetchData();
   </script>
 </body>
