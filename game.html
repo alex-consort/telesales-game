@@ -90,7 +90,7 @@
       font-size: 0.9em;
       color: #617B8F;
       margin-bottom: 10px;
-      text-align: left;
+      text-align: center;
     }
     .item-button {
       padding: 10px;
@@ -151,14 +151,14 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      databaseURL: "YOUR_DATABASE_URL",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_STORAGE_BUCKET",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID",
-      measurementId: "YOUR_MEASUREMENT_ID"
+      apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
+      authDomain: "telesalesgame-a09f2.firebaseapp.com",
+      databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "telesalesgame-a09f2",
+      storageBucket: "telesalesgame-a09f2.appspot.com",
+      messagingSenderId: "1097332097301",
+      appId: "1:1097332097301:web:51b0151499e33f7851291c",
+      measurementId: "G-7LNG5176PW"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -166,24 +166,14 @@
     const auth = firebase.auth();
 
     let currentPoints = 0;
-    let firstName = ""; // Store firstName globally
-    let lastName = ""; // Store lastName globally
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        const userRef = db.ref("users/" + user.uid);
-        
-        userRef.child("points").on("value", (snapshot) => {
+        const userPointsRef = db.ref("users/" + user.uid + "/points");
+
+        userPointsRef.on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
-        });
-
-        // Fetch firstName and lastName once
-        userRef.child("firstName").once("value", (snapshot) => {
-          firstName = snapshot.val() || "Unknown";
-        });
-        userRef.child("lastName").once("value", (snapshot) => {
-          lastName = snapshot.val() || "User";
         });
 
         fetchProducts();
@@ -196,70 +186,78 @@
 
     function fetchProducts() {
       const productsRef = db.ref("products");
-      productsRef.on("value", (snapshot) => {
+      productsRef.once("value", (snapshot) => {
         const products = snapshot.val();
         const productList = document.getElementById("productList");
         productList.innerHTML = "";
 
-        for (const key in products) {
-          const product = products[key];
-          const productCard = document.createElement("div");
-          productCard.className = "item-card";
-          productCard.innerHTML = `
-            <div class="item-name">${product.name}</div>
-            <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}')">Earn Points</button>
-          `;
-          productList.appendChild(productCard);
+        if (!products) {
+          console.error("No products found in Firebase.");
+        } else {
+          console.log("Products found:", products);  // Debugging log
+          for (const key in products) {
+            const product = products[key];
+            const productCard = document.createElement("div");
+            productCard.className = "item-card";
+            productCard.innerHTML = `
+              <div class="item-name">${product.name}</div>
+              <div class="item-details">${product.points} Points</div>
+              <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}')">Earn Points</button>
+            `;
+            productList.appendChild(productCard);
+          }
         }
       });
     }
 
     function fetchShortDatedProducts() {
       const shortDatedRef = db.ref("shortDatedProducts");
-      shortDatedRef.on("value", (snapshot) => {
+      shortDatedRef.once("value", (snapshot) => {
         const shortDatedProducts = snapshot.val();
         const shortDatedList = document.getElementById("shortDatedList");
         shortDatedList.innerHTML = "";
 
-        for (const key in shortDatedProducts) {
-          const product = shortDatedProducts[key];
-          const dateParts = product.bestBeforeDate.split("-");
-          const formattedDate = dateParts.length === 3 
-            ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0].slice(-2)}`
-            : "Invalid Date";
-
-          const shortDatedCard = document.createElement("div");
-          shortDatedCard.className = "item-card";
-          shortDatedCard.innerHTML = `
-            <div class="item-name">${product.description}</div>
-            <div class="item-details">Price: £${product.price.toFixed(2)}</div>
-            <div class="item-details">Expiry Date: ${formattedDate}</div>
-            <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}')">Earn Points</button>
-          `;
-          shortDatedList.appendChild(shortDatedCard);
+        if (!shortDatedProducts) {
+          console.error("No short-dated products found in Firebase.");
+        } else {
+          console.log("Short-dated products found:", shortDatedProducts);  // Debugging log
+          for (const key in shortDatedProducts) {
+            const product = shortDatedProducts[key];
+            const shortDatedCard = document.createElement("div");
+            shortDatedCard.className = "item-card";
+            shortDatedCard.innerHTML = `
+              <div class="item-name">${product.description}</div>
+              <div class="item-details">Points: ${product.points}</div>
+              <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}')">Earn Points</button>
+            `;
+            shortDatedList.appendChild(shortDatedCard);
+          }
         }
       });
     }
 
     function fetchObjectives() {
       const objectivesRef = db.ref("objectives");
-      objectivesRef.on("value", (snapshot) => {
+      objectivesRef.once("value", (snapshot) => {
         const objectives = snapshot.val();
         const objectiveList = document.getElementById("objectiveList");
         objectiveList.innerHTML = "";
 
-        for (const key in objectives) {
-          const objective = objectives[key];
-          const objectiveCard = document.createElement("div");
-          objectiveCard.className = "item-card";
-          objectiveCard.innerHTML = `
-            <div class="item-name">${objective.name}</div>
-            <div class="item-details">${objective.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}')">Earn Points</button>
-          `;
-          objectiveList.appendChild(objectiveCard);
+        if (!objectives) {
+          console.error("No objectives found in Firebase.");
+        } else {
+          console.log("Objectives found:", objectives);  // Debugging log
+          for (const key in objectives) {
+            const objective = objectives[key];
+            const objectiveCard = document.createElement("div");
+            objectiveCard.className = "item-card";
+            objectiveCard.innerHTML = `
+              <div class="item-name">${objective.name}</div>
+              <div class="item-details">${objective.points} Points</div>
+              <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}')">Earn Points</button>
+            `;
+            objectiveList.appendChild(objectiveCard);
+          }
         }
       });
     }
@@ -269,21 +267,25 @@
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
         const masterHistoryRef = db.ref("masterHistory");
-        userPointsRef.once("value").then((snapshot) => {
-          const currentUserPoints = snapshot.val() || 0;
-          const newTotalPoints = currentUserPoints + points;
-          userPointsRef.set(newTotalPoints).then(() => {
-            document.getElementById("points").innerText = newTotalPoints;
-            // Record the action in master history with separate firstName and lastName fields
+        const userRef = db.ref("users/" + user.uid);
+
+        userRef.once("value").then((snapshot) => {
+          const userData = snapshot.val();
+          const firstName = userData.firstName || "undefined";
+          const lastName = userData.lastName || "undefined";
+
+          userPointsRef.transaction((currentPoints) => {
+            return (currentPoints || 0) + points;
+          }).then(() => {
             masterHistoryRef.push({
               actionType: 'Earn Points',
               productName: productName,
               firstName: firstName,
               lastName: lastName,
               points: points,
-              purchaseDate: new Date().toISOString(),
-              erpStatus: 'Pending'
+              purchaseDate: new Date().toISOString()
             });
+            document.getElementById("points").innerText = currentPoints;
           });
         });
       } else {
