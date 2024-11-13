@@ -178,27 +178,25 @@
           document.getElementById("points").innerText = currentPoints;
         });
 
-        // Fetch user first and last name separately
-        let firstName = "";
-        let lastName = "";
-
+        // Fetch user first and last name
         userFirstNameRef.once("value").then((snapshot) => {
-          firstName = snapshot.val();
+          const firstName = snapshot.val();
+          userLastNameRef.once("value").then((snapshot) => {
+            const lastName = snapshot.val();
+            console.log("First Name:", firstName, "Last Name:", lastName); // Debugging: Log names
+
+            fetchProducts(firstName, lastName);
+            fetchShortDatedProducts(firstName, lastName);
+            fetchObjectives(firstName, lastName);
+          });
         });
 
-        userLastNameRef.once("value").then((snapshot) => {
-          lastName = snapshot.val();
-        });
-
-        fetchProducts();
-        fetchShortDatedProducts();
-        fetchObjectives();
       } else {
         window.location.href = "login.html";
       }
     });
 
-    function fetchProducts() {
+    function fetchProducts(firstName, lastName) {
       const productsRef = db.ref("products");
       productsRef.on("value", (snapshot) => {
         const products = snapshot.val();
@@ -212,14 +210,14 @@
           productCard.innerHTML = `
             <div class="item-name">${product.name}</div>
             <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}')">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}', '${firstName}', '${lastName}')">Earn Points</button>
           `;
           productList.appendChild(productCard);
         }
       });
     }
 
-    function fetchShortDatedProducts() {
+    function fetchShortDatedProducts(firstName, lastName) {
       const shortDatedRef = db.ref("shortDatedProducts");
       shortDatedRef.on("value", (snapshot) => {
         const shortDatedProducts = snapshot.val();
@@ -240,14 +238,14 @@
             <div class="item-details">Price: £${product.price.toFixed(2)}</div>
             <div class="item-details">Expiry Date: ${formattedDate}</div>
             <div class="item-details">${product.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}')">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}', '${firstName}', '${lastName}')">Earn Points</button>
           `;
           shortDatedList.appendChild(shortDatedCard);
         }
       });
     }
 
-    function fetchObjectives() {
+    function fetchObjectives(firstName, lastName) {
       const objectivesRef = db.ref("objectives");
       objectivesRef.on("value", (snapshot) => {
         const objectives = snapshot.val();
@@ -261,14 +259,14 @@
           objectiveCard.innerHTML = `
             <div class="item-name">${objective.name}</div>
             <div class="item-details">${objective.points} Points</div>
-            <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}')">Earn Points</button>
+            <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}', '${firstName}', '${lastName}')">Earn Points</button>
           `;
           objectiveList.appendChild(objectiveCard);
         }
       });
     }
 
-    function earnPoints(points, productName) {
+    function earnPoints(points, productName, firstName, lastName) {
       const user = auth.currentUser;
       if (user) {
         const userPointsRef = db.ref("users/" + user.uid + "/points");
@@ -278,12 +276,12 @@
           const newTotalPoints = currentUserPoints + points;
           userPointsRef.set(newTotalPoints).then(() => {
             document.getElementById("points").innerText = newTotalPoints;
-            // Record the action in master history with firstName and lastName
+            // Record the action in master history
             masterHistoryRef.push({
               actionType: 'Earn Points',
               productName: productName,
-              firstName: firstName,  // Storing first name separately
-              lastName: lastName,    // Storing last name separately
+              firstName: firstName,
+              lastName: lastName,
               points: points,
               purchaseDate: new Date().toISOString(),
               erpStatus: 'Pending'
