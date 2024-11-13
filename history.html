@@ -107,6 +107,10 @@
     <h2>Master History Log</h2>
     <p>This page records all actions (purchases, products sold, objectives completed, short-dated items sold) and stores them permanently. You can export the data as a CSV file.</p>
 
+    <!-- Filter by User Name -->
+    <label for="nameFilter">Filter by User Name:</label>
+    <input type="text" id="nameFilter" placeholder="Enter user name">
+
     <!-- Data Display Table -->
     <table id="dataTable">
       <thead>
@@ -116,7 +120,6 @@
           <th>User</th>
           <th>Points</th>
           <th>Date</th>
-          <th>ERP Status</th>
         </tr>
       </thead>
       <tbody id="dataList">
@@ -162,27 +165,34 @@
     function fetchData() {
       const historyRef = db.ref("masterHistory");
       const dataList = document.getElementById("dataList");
+      const nameFilter = document.getElementById("nameFilter").value.toLowerCase();
 
       historyRef.once("value", snapshot => {
         dataList.innerHTML = ""; // Clear existing data
 
         snapshot.forEach(childSnapshot => {
           const data = childSnapshot.val();
-          dataList.innerHTML += `
-            <tr>
-              <td>${data.actionType}</td>
-              <td>${data.productName}</td>
-              <td>${data.userName}</td>
-              <td>${data.points}</td>
-              <td>${data.date}</td>
-              <td>${data.erpStatus || 'Pending'}</td>
-            </tr>`;
+          const userName = data.userName ? data.userName.toLowerCase() : "";
+          const date = new Date(data.date);
+          const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+
+          // Check if the user's name matches the filter
+          if (!nameFilter || userName.includes(nameFilter)) {
+            dataList.innerHTML += `
+              <tr>
+                <td>${data.actionType}</td>
+                <td>${data.productName}</td>
+                <td>${data.userName}</td>
+                <td>${data.points}</td>
+                <td>${formattedDate}</td>
+              </tr>`;
+          }
         });
       });
     }
 
     // Function to add an action to the Firebase masterHistory
-    function addActionToHistory(actionType, productName, userName, points, date, erpStatus) {
+    function addActionToHistory(actionType, productName, userName, points, date) {
       const historyRef = db.ref("masterHistory");
       const newActionRef = historyRef.push();
       newActionRef.set({
@@ -190,8 +200,7 @@
         productName: productName,
         userName: userName,
         points: points,
-        date: date,
-        erpStatus: erpStatus // 'Pending', 'Verified', etc.
+        date: date
       });
     }
 
@@ -199,7 +208,7 @@
     function exportToCSV() {
       const table = document.getElementById("dataTable");
       const rows = table.querySelectorAll("tr");
-      let csvContent = "Action Type, Product Name, User, Points, Date, ERP Status\n";
+      let csvContent = "Action Type, Product Name, User, Points, Date\n";
 
       rows.forEach((row, index) => {
         if (index === 0) return;  // Skip the header row
@@ -217,6 +226,9 @@
 
     // Event listener for export button
     document.getElementById("exportButton").addEventListener("click", exportToCSV);
+
+    // Event listener for name filter
+    document.getElementById("nameFilter").addEventListener("input", fetchData);
 
     // Initialize Firebase and fetch the data
     initializeMasterHistory();
