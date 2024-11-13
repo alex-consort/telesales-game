@@ -118,6 +118,7 @@
       <h2>Player List</h2>
       <p>To adjust a player’s points, enter a positive number to add points or a negative number to deduct points, then click "Adjust Points".</p>
       <div id="playersList"></div>
+      <button class="clear-button" onclick="resetAllPlayers()">Reset All Players</button>
     </div>
 
     <!-- Product Section with Add Product functionality -->
@@ -230,6 +231,158 @@
       });
     }
 
+    function resetAllPlayers() {
+      if (confirm("Are you sure you want to reset all players? This will set all points, items sold, and objectives completed to zero.")) {
+        db.ref("users").once("value").then((snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            const playerId = childSnapshot.key;
+            db.ref("users/" + playerId).update({ points: 0, itemsSold: 0, objectivesCompleted: 0 });
+          });
+        }).then(() => {
+          alert("All players have been reset!");
+        });
+      }
+    }
+
+    function fetchProducts() {
+      const productsRef = db.ref("products");
+      productsRef.on("value", (snapshot) => {
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          productList.innerHTML += `
+            <div class="item-card">
+              <strong>${product.name}</strong> - ${product.points} Points
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
+
+    function fetchObjectives() {
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.on("value", (snapshot) => {
+        const objectivesList = document.getElementById("objectivesList");
+        objectivesList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const objective = childSnapshot.val();
+          const objectiveId = childSnapshot.key;
+          objectivesList.innerHTML += `
+            <div class="item-card">
+              <strong>${objective.name}</strong> - ${objective.points} Points
+              <button class="remove-button" onclick="removeObjective('${objectiveId}')">Remove Objective</button>
+            </div>`;
+        });
+      });
+    }
+
+    function fetchShortDatedProducts() {
+      const shortDatedProductsRef = db.ref("shortDatedProducts");
+      shortDatedProductsRef.on("value", (snapshot) => {
+        const shortDatedProductsList = document.getElementById("shortDatedProductsList");
+        shortDatedProductsList.innerHTML = "";
+
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          const bestBeforeDateFormatted = new Date(product.bestBeforeDate).toLocaleDateString("en-GB");
+
+          shortDatedProductsList.innerHTML += `
+            <div class="item-card">
+              <strong>${product.description}</strong><br>
+              Best Before: ${bestBeforeDateFormatted}<br>
+              Price: £${product.price.toFixed(2)}<br>
+              Points: ${product.points}<br>
+              <button class="remove-button" onclick="removeShortDatedProduct('${productId}')">Remove Product</button>
+            </div>`;
+        });
+      });
+    }
+
+    function addProduct() {
+      const name = document.getElementById("productName").value;
+      const points = parseInt(document.getElementById("productPoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid product name and points.");
+        return;
+      }
+
+      db.ref("products").push({ name, points })
+        .then(() => {
+          alert("Product added successfully!");
+          document.getElementById("productName").value = "";
+          document.getElementById("productPoints").value = "";
+        });
+    }
+
+    function addObjective() {
+      const name = document.getElementById("objectiveName").value;
+      const points = parseInt(document.getElementById("objectivePoints").value, 10);
+
+      if (!name || isNaN(points)) {
+        alert("Please enter a valid objective name and points.");
+        return;
+      }
+
+      db.ref("objectives").push({ name, points })
+        .then(() => {
+          alert("Objective added successfully!");
+          document.getElementById("objectiveName").value = "";
+          document.getElementById("objectivePoints").value = "";
+        });
+    }
+
+    function addShortDatedProduct() {
+      const description = document.getElementById("shortDatedDescription").value;
+      const bestBeforeDate = document.getElementById("bestBeforeDate").value;
+      const price = parseFloat(document.getElementById("reducedPrice").value);
+      const points = parseInt(document.getElementById("shortDatedPoints").value, 10);
+
+      if (!description || !bestBeforeDate || isNaN(price) || isNaN(points)) {
+        alert("Please fill in all fields with valid data.");
+        return;
+      }
+
+      db.ref("shortDatedProducts").push({
+        description: description,
+        bestBeforeDate: bestBeforeDate,
+        price: price,
+        points: points
+      }).then(() => {
+        alert("Short dated product added successfully!");
+        document.getElementById("shortDatedDescription").value = "";
+        document.getElementById("bestBeforeDate").value = "";
+        document.getElementById("reducedPrice").value = "";
+        document.getElementById("shortDatedPoints").value = "";
+      });
+    }
+
+    function removeProduct(productId) {
+      db.ref("products/" + productId).remove()
+        .then(() => {
+          alert("Product removed successfully!");
+        });
+    }
+
+    function removeObjective(objectiveId) {
+      db.ref("objectives/" + objectiveId).remove()
+        .then(() => {
+          alert("Objective removed successfully!");
+        });
+    }
+
+    function removeShortDatedProduct(productId) {
+      db.ref("shortDatedProducts/" + productId).remove()
+        .then(() => {
+          alert("Short dated product removed successfully!");
+        });
+    }
+
     function removePlayer(playerId) {
       if (confirm("Are you sure you want to remove this player?")) {
         db.ref("users/" + playerId).remove()
@@ -240,6 +393,9 @@
     }
 
     fetchPlayers();
+    fetchProducts();
+    fetchObjectives();
+    fetchShortDatedProducts();
   </script>
 </body>
 </html>
