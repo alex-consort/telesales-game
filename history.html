@@ -82,6 +82,12 @@
     button:hover {
       background-color: #FF4E59;
     }
+    .filter-input {
+      margin-bottom: 20px;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
   </style>
 </head>
 <body>
@@ -106,6 +112,9 @@
   <div class="container">
     <h2>Master History Log</h2>
     <p>This page records all actions (purchases, products sold, objectives completed, short-dated items sold) and stores them permanently. You can export the data as a CSV file.</p>
+
+    <!-- Filter Input -->
+    <input type="text" id="filterInput" class="filter-input" placeholder="Filter by User Name" oninput="filterData()">
 
     <!-- Data Display Table -->
     <table id="dataTable">
@@ -146,17 +155,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Function to ensure the masterHistory node exists
-    function initializeMasterHistory() {
-      const historyRef = db.ref("masterHistory");
-      historyRef.once("value", snapshot => {
-        if (!snapshot.exists()) {
-          // If the masterHistory node doesn't exist, create it
-          db.ref("masterHistory").set({});
-        }
-      });
-    }
-
     // Function to fetch all data from the master history node
     function fetchData() {
       const historyRef = db.ref("masterHistory");
@@ -167,7 +165,10 @@
 
         snapshot.forEach(childSnapshot => {
           const data = childSnapshot.val();
-          const formattedDate = new Date(data.date).toLocaleDateString("en-GB"); // Format the date as dd/MM/yy
+          const date = new Date(data.date);
+          const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+
+          // Add the new row to the table
           dataList.innerHTML += `
             <tr>
               <td>${data.actionType}</td>
@@ -180,16 +181,18 @@
       });
     }
 
-    // Function to add an action to the Firebase masterHistory
-    function addActionToHistory(actionType, productName, userName, points, date) {
-      const historyRef = db.ref("masterHistory");
-      const newActionRef = historyRef.push();
-      newActionRef.set({
-        actionType: actionType,
-        productName: productName,
-        userName: userName,
-        points: points,
-        date: date,
+    // Function to filter data by user name
+    function filterData() {
+      const filter = document.getElementById("filterInput").value.toLowerCase();
+      const rows = document.querySelectorAll("#dataList tr");
+
+      rows.forEach(row => {
+        const userName = row.cells[2].textContent.toLowerCase();
+        if (userName.includes(filter)) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
       });
     }
 
@@ -217,7 +220,6 @@
     document.getElementById("exportButton").addEventListener("click", exportToCSV);
 
     // Initialize Firebase and fetch the data
-    initializeMasterHistory();
     fetchData();
   </script>
 </body>
