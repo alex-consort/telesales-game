@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Play Game - Telesales Game</title>
+  <title>Master History - Telesales Game</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
-    /* General Styles */
     body {
       font-family: 'Calibri', sans-serif;
       background-color: #f4f6f9;
@@ -15,16 +14,12 @@
       margin: 0;
       padding: 0;
     }
-    /* Navbar */
     .navbar {
       background-color: #617B8F;
       padding: 10px;
       display: flex;
       justify-content: center;
       gap: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
     }
     .navbar a {
       color: white;
@@ -36,7 +31,6 @@
     .navbar a:hover {
       background-color: #FF4E59;
     }
-    /* Header */
     .header {
       display: flex;
       justify-content: center;
@@ -53,63 +47,40 @@
       font-size: 1.8em;
       font-weight: bold;
     }
-    /* Game Container */
-    .game-container {
-      max-width: 800px;
-      margin: 20px auto;
+    .container {
       padding: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
       background-color: #ffffff;
       border-radius: 8px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     }
-    .points-display {
-      font-size: 1.5em;
-      color: #617B8F;
-      margin: 20px 0;
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
     }
-    /* Item Cards */
-    .item-card {
-      background-color: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 15px;
-      margin: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-      max-width: 250px;
-    }
-    .item-name {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #274358;
-      margin-bottom: 10px;
-    }
-    .item-details {
-      font-size: 0.9em;
-      color: #617B8F;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    .item-button {
+    th, td {
       padding: 10px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #617B8F;
+      color: white;
+    }
+    button {
+      padding: 10px 20px;
       color: #fff;
       background-color: #274358;
       border: none;
       border-radius: 5px;
       cursor: pointer;
       font-weight: bold;
-      transition: background 0.3s;
+      margin-top: 20px;
     }
-    .item-button:hover {
+    button:hover {
       background-color: #FF4E59;
-    }
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-      justify-items: center;
     }
   </style>
 </head>
@@ -117,36 +88,51 @@
 
   <div class="navbar">
     <a href="profile.html">Profile</a>
-    <a href="dashboard.html">Leaderboard</a>
     <a href="game.html">Play Game</a>
     <a href="shop.html">Shop</a>
     <a href="achievements.html">Achievements</a>
     <a href="settings.html">Settings</a>
+    <a href="supervisor.html">Supervisor</a>
+    <a href="shopkeeping.html">Shopkeeping</a>
+    <a href="history.html">History</a>
     <a href="logout.html">Log Out</a>
   </div>
 
   <header class="header">
     <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
-    <h1 class="game-title">Telesales Game</h1>
+    <h1 class="game-title">Master History Log</h1>
   </header>
 
-  <div class="game-container">
-    <h2>Earn Points by Selecting Items!</h2>
-    <p class="points-display">Current Points: <span id="points">0</span></p>
-    
-    <h3>Available Products</h3>
-    <div class="grid-container" id="productList"></div>
+  <div class="container">
+    <h2>Master History Log</h2>
+    <p>This page records all actions (purchases, products sold, objectives completed, short-dated items sold, and redemptions) and stores them permanently. You can export the data as a CSV file.</p>
 
-    <h3>Available Short-Dated Products</h3>
-    <div class="grid-container" id="shortDatedList"></div>
+    <!-- Filter Input -->
+    <label for="userFilter">Filter by User Name:</label>
+    <input type="text" id="userFilter" placeholder="Enter user name" oninput="applyFilter()">
 
-    <h3>Available Objectives</h3>
-    <div class="grid-container" id="objectiveList"></div>
+    <!-- Data Display Table -->
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Action Type</th>
+          <th>Product Name</th>
+          <th>User</th>
+          <th>Points</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="dataList">
+        <!-- Data will be dynamically inserted here -->
+      </tbody>
+    </table>
+
+    <!-- Export Button -->
+    <button id="exportButton">Export as CSV</button>
   </div>
 
-  <!-- Load Firebase SDKs from CDN -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
   <script>
@@ -155,7 +141,7 @@
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.appspot.com",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
@@ -163,135 +149,66 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const auth = firebase.auth();
 
-    let currentPoints = 0;
+    function fetchData() {
+      const historyRef = db.ref("masterHistory");
+      const dataList = document.getElementById("dataList");
 
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
+      historyRef.once("value", snapshot => {
+        dataList.innerHTML = ""; // Clear existing data
 
-        userPointsRef.on("value", (snapshot) => {
-          currentPoints = snapshot.val() || 0;
-          document.getElementById("points").innerText = currentPoints;
-        });
-
-        fetchProducts();
-        fetchShortDatedProducts();
-        fetchObjectives();
-      } else {
-        window.location.href = "login.html";
-      }
-    });
-
-    function fetchProducts() {
-      const productsRef = db.ref("products");
-      productsRef.once("value", (snapshot) => {
-        const products = snapshot.val();
-        const productList = document.getElementById("productList");
-        productList.innerHTML = "";
-
-        if (!products) {
-          console.error("No products found in Firebase.");
-        } else {
-          console.log("Products found:", products);  // Debugging log
-          for (const key in products) {
-            const product = products[key];
-            const productCard = document.createElement("div");
-            productCard.className = "item-card";
-            productCard.innerHTML = `
-              <div class="item-name">${product.name}</div>
-              <div class="item-details">${product.points} Points</div>
-              <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}')">Earn Points</button>
-            `;
-            productList.appendChild(productCard);
-          }
-        }
-      });
-    }
-
-    function fetchShortDatedProducts() {
-      const shortDatedRef = db.ref("shortDatedProducts");
-      shortDatedRef.once("value", (snapshot) => {
-        const shortDatedProducts = snapshot.val();
-        const shortDatedList = document.getElementById("shortDatedList");
-        shortDatedList.innerHTML = "";
-
-        if (!shortDatedProducts) {
-          console.error("No short-dated products found in Firebase.");
-        } else {
-          console.log("Short-dated products found:", shortDatedProducts);  // Debugging log
-          for (const key in shortDatedProducts) {
-            const product = shortDatedProducts[key];
-            const shortDatedCard = document.createElement("div");
-            shortDatedCard.className = "item-card";
-            shortDatedCard.innerHTML = `
-              <div class="item-name">${product.description}</div>
-              <div class="item-details">Points: ${product.points}</div>
-              <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}')">Earn Points</button>
-            `;
-            shortDatedList.appendChild(shortDatedCard);
-          }
-        }
-      });
-    }
-
-    function fetchObjectives() {
-      const objectivesRef = db.ref("objectives");
-      objectivesRef.once("value", (snapshot) => {
-        const objectives = snapshot.val();
-        const objectiveList = document.getElementById("objectiveList");
-        objectiveList.innerHTML = "";
-
-        if (!objectives) {
-          console.error("No objectives found in Firebase.");
-        } else {
-          console.log("Objectives found:", objectives);  // Debugging log
-          for (const key in objectives) {
-            const objective = objectives[key];
-            const objectiveCard = document.createElement("div");
-            objectiveCard.className = "item-card";
-            objectiveCard.innerHTML = `
-              <div class="item-name">${objective.name}</div>
-              <div class="item-details">${objective.points} Points</div>
-              <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}')">Earn Points</button>
-            `;
-            objectiveList.appendChild(objectiveCard);
-          }
-        }
-      });
-    }
-
-    function earnPoints(points, productName) {
-      const user = auth.currentUser;
-      if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        const masterHistoryRef = db.ref("masterHistory");
-        const userRef = db.ref("users/" + user.uid);
-
-        userRef.once("value").then((snapshot) => {
-          const userData = snapshot.val();
-          const firstName = userData.firstName || "undefined";
-          const lastName = userData.lastName || "undefined";
-
-          userPointsRef.transaction((currentPoints) => {
-            return (currentPoints || 0) + points;
-          }).then(() => {
-            masterHistoryRef.push({
-              actionType: 'Earn Points',
-              productName: productName,
-              firstName: firstName,
-              lastName: lastName,
-              points: points,
-              purchaseDate: new Date().toISOString()
-            });
-            document.getElementById("points").innerText = currentPoints;
+        snapshot.forEach(childSnapshot => {
+          const data = childSnapshot.val();
+          const formattedDate = new Date(data.purchaseDate).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
           });
+
+          dataList.innerHTML += `
+            <tr>
+              <td>${data.actionType || 'undefined'}</td>
+              <td>${data.productName || data.itemName || 'undefined'}</td>
+              <td>${data.firstName || 'Unknown'} ${data.lastName || 'Unknown'}</td>
+              <td>${data.points || data.pointsSpent || 'undefined'}</td>
+              <td>${formattedDate}</td>
+            </tr>`;
         });
-      } else {
-        alert("You need to be logged in to earn points.");
-      }
+      });
     }
+
+    function applyFilter() {
+      const filterValue = document.getElementById("userFilter").value.toLowerCase();
+      const rows = document.querySelectorAll("#dataList tr");
+
+      rows.forEach(row => {
+        const userName = row.cells[2].textContent.toLowerCase();
+        row.style.display = userName.includes(filterValue) ? "" : "none";
+      });
+    }
+
+    function exportToCSV() {
+      const table = document.getElementById("dataTable");
+      const rows = table.querySelectorAll("tr");
+      let csvContent = "Action Type,Product Name,User,Points,Date\n";
+
+      rows.forEach((row, index) => {
+        if (index === 0) return;  // Skip the header row
+        const cols = row.querySelectorAll("td");
+        const rowData = Array.from(cols).map(col => col.innerText).join(",");
+        csvContent += rowData + "\n";
+      });
+
+      const link = document.createElement("a");
+      link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent);
+      link.download = "master_history_data.csv";
+      link.click();
+    }
+
+    document.getElementById("exportButton").addEventListener("click", exportToCSV);
+
+    // Fetch data on page load
+    fetchData();
   </script>
 </body>
 </html>
