@@ -139,33 +139,6 @@
       cursor: pointer;
     }
 
-    .filter-container {
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .filter-container label {
-      font-size: 1em;
-      margin-right: 10px;
-      color: var(--blue);
-      font-weight: bold;
-    }
-
-    .filter-container select {
-      padding: 10px;
-      border-radius: 25px;
-      border: 1px solid var(--blue-grey);
-      outline: none;
-      font-size: 1em;
-      transition: all 0.3s;
-    }
-
-    .filter-container select:focus {
-      box-shadow: 0 0 8px rgba(39, 67, 88, 0.5);
-    }
-
     /* Modal Styles */
     .modal {
       display: none;
@@ -193,7 +166,7 @@
       text-align: left;
     }
 
-    .modal-content p {
+    .modal-content p, .modal-content ul {
       margin: 10px 0;
     }
 
@@ -325,17 +298,45 @@
       const modalContent = document.getElementById("modalContent");
       modalContent.innerHTML = "Loading...";
 
+      // Fetch user statistics and achievements
       db.ref(`users/${userId}`).once("value").then((snapshot) => {
         const data = snapshot.val();
+        const achievements = data.achievements || {};
+        const achievementsList = Object.keys(achievements)
+          .filter(key => achievements[key])
+          .map(key => `<li>${formatAchievementTitle(key)}</li>`)
+          .join("") || "<li>No achievements yet.</li>";
+
         modalContent.innerHTML = `
           <p><strong>Points:</strong> ${data.points || 0}</p>
           <p><strong>Items Sold:</strong> ${data.itemsSold || 0}</p>
           <p><strong>Objectives Completed:</strong> ${data.objectivesCompleted || 0}</p>
           <h3>Achievements:</h3>
-          <ul>${Object.keys(data.achievements || {}).map(a => `<li>${a}</li>`).join("")}</ul>
+          <ul>${achievementsList}</ul>
         `;
         document.getElementById("userModal").style.display = "block";
       });
+    }
+
+    function formatAchievementTitle(key) {
+      const titles = {
+        hundred_points: "Earned 100 Points",
+        five_hundred_points: "Earned 500 Points",
+        thousand_points: "Earned 1000 Points",
+        high_roller: "Achieved 10,000 Points",
+        sales_10: "10 Sales Completed",
+        sales_50: "50 Sales Completed",
+        sales_100: "100 Sales Completed",
+        seasoned_seller: "200 Sales Completed",
+        first_redemption: "First Redemption",
+        ten_redemptions: "10 Redemptions",
+        fifty_redemptions: "50 Redemptions",
+        weekly_streak: "5-Day Login Streak",
+        top_seller: "Top 5 Leaderboard Position",
+        objective_master: "10 Objectives Completed",
+        goal_getter: "Monthly Goals Achieved"
+      };
+      return titles[key] || key.replace(/_/g, " ");
     }
 
     function closeModal() {
