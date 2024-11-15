@@ -7,13 +7,25 @@
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
     /* General Styles */
+    :root {
+      --blue: #274358;
+      --blue-grey: #617B8F;
+      --light-blue: #97CFF3;
+      --aqua: #A6D9D7;
+      --rose: #FF4E59;
+      --text-dark: #333;
+    }
+
     body {
       font-family: 'Calibri', sans-serif;
       background: linear-gradient(to right, #274358, #617B8F);
       color: #FFFFFF;
+      text-align: center;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     /* Navbar */
@@ -23,11 +35,11 @@
       display: flex;
       justify-content: center;
       gap: 20px;
+      width: 100%;
       position: sticky;
       top: 0;
       z-index: 1000;
     }
-
     .navbar a {
       color: #FFF;
       text-decoration: none;
@@ -36,7 +48,6 @@
       font-weight: bold;
       transition: background 0.3s, color 0.3s;
     }
-
     .navbar a:hover {
       background-color: #FF4E59;
       color: #FFF;
@@ -50,69 +61,81 @@
       padding: 20px;
       background: linear-gradient(135deg, #617B8F, #274358);
       box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+      width: 100%;
     }
-
     .logo {
       height: 60px;
-      margin-right: 20px;
+      margin-right: 15px;
     }
-
-    .page-title {
-      color: #FFF;
-      font-size: 2.4em;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+    .game-title {
+      color: #FFFFFF;
+      font-size: 2em;
+      font-weight: bold;
     }
 
     /* Achievements Container */
     .achievements-container {
       max-width: 900px;
       margin: 40px auto;
-      padding: 30px;
-      background: rgba(255, 255, 255, 0.9);
+      padding: 25px;
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 15px;
       box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
       color: #274358;
-      text-align: left;
+      animation: fadeIn 1s ease-in-out;
     }
 
-    h2 {
-      font-size: 1.8em;
-      color: #274358;
-      border-bottom: 2px solid #617B8F;
-      padding-bottom: 5px;
-      margin-top: 30px;
-    }
-
-    /* Achievement Cards */
+    /* Achievement Card */
     .achievement-card {
-      background: #f9f9f9;
+      background: #f4f6f9;
       border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 15px;
-      margin: 10px 0;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 15px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-      box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
-      color: #274358;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 250px;
+      transition: transform 0.3s, box-shadow 0.3s;
     }
-
     .achievement-card.completed {
-      background: #A6D9D7;
+      background-color: #A6D9D7;
       color: #274358;
     }
-
-    .achievement-name {
-      font-size: 1.2em;
+    .achievement-title {
+      font-size: 1.3em;
       font-weight: bold;
+      color: var(--blue);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .achievement-description {
+      font-size: 1em;
+      color: var(--blue-grey);
+      text-align: center;
+    }
+    .achievement-status {
+      font-weight: bold;
+      color: var(--rose);
+      margin-top: 10px;
     }
 
-    .achievement-description {
-      color: #617B8F;
-      font-size: 0.9em;
+    /* Grid Container */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 25px;
+      justify-items: center;
+      margin-top: 20px;
     }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
   </style>
 </head>
 <body>
@@ -129,18 +152,15 @@
 
   <header class="header">
     <img src="https://consortfrozenfoods.co.uk/wp-content/uploads/2023/06/Consort-Logo-2022-600x300-1.png" alt="Consort Logo" class="logo">
-    <h1 class="page-title">Achievements</h1>
+    <h1 class="game-title">Telesales Game - Achievements</h1>
   </header>
 
   <div class="achievements-container">
-    <h2>Completed Achievements</h2>
-    <div id="completedAchievements">
-      <!-- Completed achievements will be displayed here -->
-    </div>
-
-    <h2>Available Achievements</h2>
-    <div id="availableAchievements">
-      <!-- Available achievements will be displayed here -->
+    <h2>Your Achievements</h2>
+    
+    <!-- Achievements Grid -->
+    <div class="grid-container" id="achievementsGrid">
+      <!-- Achievements are populated here -->
     </div>
   </div>
 
@@ -155,7 +175,7 @@
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.appspot.com",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
@@ -164,19 +184,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
-
-    const achievements = [
-      { id: "sales_10", name: "10 Sales", description: "Complete 10 sales." },
-      { id: "sales_50", name: "50 Sales", description: "Complete 50 sales." },
-      { id: "sales_100", name: "100 Sales", description: "Complete 100 sales." },
-      { id: "points_500", name: "500 Points", description: "Earn 500 points." },
-      { id: "points_1000", name: "1000 Points", description: "Earn 1000 points." },
-      { id: "points_5000", name: "5000 Points", description: "Earn 5000 points." },
-      { id: "top_5", name: "Top 5", description: "Reach the top 5 in the leaderboard." },
-      { id: "perfect_month", name: "Perfect Month", description: "Achieve all monthly goals." },
-      { id: "first_redemption", name: "First Redemption", description: "Redeem your first item in the shop." },
-      { id: "daily_login_7", name: "Weekly Streak", description: "Log in for 7 consecutive days." }
-    ];
 
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -187,35 +194,48 @@
     });
 
     function displayAchievements(userId) {
-      const completedAchievementsDiv = document.getElementById("completedAchievements");
-      const availableAchievementsDiv = document.getElementById("availableAchievements");
+      const achievementsRef = db.ref("achievements/" + userId);
+      const achievementsGrid = document.getElementById("achievementsGrid");
+      achievementsGrid.innerHTML = "";
 
-      db.ref("achievements/" + userId).once("value").then((snapshot) => {
+      const availableAchievements = {
+        first_redemption: "First Redemption",
+        ten_redemptions: "10 Redemptions",
+        fifty_redemptions: "50 Redemptions",
+        hundred_points: "Earned 100 Points",
+        five_hundred_points: "Earned 500 Points",
+        thousand_points: "Earned 1000 Points",
+        // Add additional achievement definitions as needed
+      };
+
+      achievementsRef.on("value", (snapshot) => {
         const userAchievements = snapshot.val() || {};
 
-        completedAchievementsDiv.innerHTML = "";
-        availableAchievementsDiv.innerHTML = "";
-
-        achievements.forEach(achievement => {
-          const isCompleted = userAchievements[achievement.id];
-
+        for (const [key, title] of Object.entries(availableAchievements)) {
+          const isCompleted = userAchievements[key];
           const achievementCard = document.createElement("div");
-          achievementCard.className = "achievement-card " + (isCompleted ? "completed" : "");
+          achievementCard.className = `achievement-card ${isCompleted ? 'completed' : ''}`;
           achievementCard.innerHTML = `
-            <div>
-              <div class="achievement-name">${achievement.name}</div>
-              <div class="achievement-description">${achievement.description}</div>
-            </div>
-            ${isCompleted ? "<span>✔️</span>" : ""}
+            <div class="achievement-title">${title}</div>
+            <div class="achievement-description">${getAchievementDescription(key)}</div>
+            <div class="achievement-status">${isCompleted ? 'Completed' : 'Incomplete'}</div>
           `;
-
-          if (isCompleted) {
-            completedAchievementsDiv.appendChild(achievementCard);
-          } else {
-            availableAchievementsDiv.appendChild(achievementCard);
-          }
-        });
+          achievementsGrid.appendChild(achievementCard);
+        }
       });
+    }
+
+    function getAchievementDescription(key) {
+      const descriptions = {
+        first_redemption: "Redeem your first item in the shop.",
+        ten_redemptions: "Redeem 10 items in the shop.",
+        fifty_redemptions: "Redeem 50 items in the shop.",
+        hundred_points: "Earn a total of 100 points.",
+        five_hundred_points: "Earn a total of 500 points.",
+        thousand_points: "Earn a total of 1000 points.",
+        // Add additional descriptions as needed
+      };
+      return descriptions[key] || "Achievement description not available.";
     }
   </script>
 </body>
