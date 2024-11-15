@@ -190,9 +190,9 @@
     <a href="profile.html">Profile</a>
     <a href="dashboard.html">Leaderboard</a>
     <a href="game.html">Play Game</a>
+    <a href="shop.html">Shop</a>
     <a href="achievements.html">Achievements</a>
     <a href="settings.html">Settings</a>
-    <a href="shop.html">Shop</a>
     <a href="logout.html">Log Out</a>
   </div>
 
@@ -292,6 +292,7 @@
       const userPointsRef = db.ref("users/" + user.uid + "/points");
       const purchasesRef = db.ref("purchases");
       const achievementsRef = db.ref("achievements/" + user.uid);
+      const redemptionsRef = db.ref("users/" + user.uid + "/redemptions");
 
       userPointsRef.transaction((points) => {
         if (points && points >= pointsRequired) {
@@ -311,16 +312,16 @@
           });
           alert("Redemption successful!");
 
-          // Check and update "First Redemption" achievement
-          achievementsRef.child("first_redemption").get().then((snapshot) => {
-            if (!snapshot.exists()) {
-              achievementsRef.update({
-                first_redemption: true
-              }).then(() => {
-                alert("Achievement Unlocked: First Redemption!");
-              }).catch((error) => console.error("Error updating achievement:", error));
-            }
-          }).catch((error) => console.error("Error checking achievement:", error));
+          // Increment redemption count and update milestones
+          redemptionsRef.transaction((redemptions) => {
+            return (redemptions || 0) + 1;
+          }).then((redemptionResult) => {
+            const totalRedemptions = redemptionResult.snapshot.val();
+            
+            if (totalRedemptions === 1) achievementsRef.update({ first_redemption: true });
+            if (totalRedemptions === 10) achievementsRef.update({ ten_redemptions: true });
+            if (totalRedemptions === 50) achievementsRef.update({ fifty_redemptions: true });
+          }).catch((error) => console.error("Error updating redemption milestones:", error));
         }
       }).catch((error) => console.error("Redemption failed:", error));
     }
