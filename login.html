@@ -86,23 +86,23 @@
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.appspot.com",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.database();
 
     function logIn() {
       const email = document.getElementById("loginEmail").value;
@@ -114,6 +114,8 @@
 
       auth.signInWithEmailAndPassword(email, password)
         .then(() => {
+          const user = auth.currentUser;
+          recordLogin(user.uid);
           alert("Logged in successfully!");
           window.location.href = "profile.html";
         })
@@ -121,6 +123,58 @@
           console.error("Login Error:", error.message);
           alert("Error: " + error.message);
         });
+    }
+
+    function recordLogin(userId) {
+      const loginRef = db.ref("users/" + userId + "/logins");
+      const now = new Date().toISOString();
+
+      // Push the current login timestamp
+      loginRef.push(now).then(() => {
+        checkWeeklyStreak(userId);
+      });
+    }
+
+    function checkWeeklyStreak(userId) {
+      const loginRef = db.ref("users/" + userId + "/logins");
+      loginRef.once("value").then(snapshot => {
+        const loginTimestamps = Object.values(snapshot.val() || {}).map(date => new Date(date));
+        loginTimestamps.sort((a, b) => b - a); // Sort by most recent first
+
+        if (hasFiveConsecutiveWorkdays(loginTimestamps)) {
+          markAchievementCompleted(userId, "Weekly Streak");
+        }
+      });
+    }
+
+    function hasFiveConsecutiveWorkdays(timestamps) {
+      let consecutiveDays = 1;
+
+      for (let i = 0; i < timestamps.length - 1; i++) {
+        const diff = (timestamps[i] - timestamps[i + 1]) / (1000 * 60 * 60 * 24); // Difference in days
+        if (diff === 1 || (timestamps[i].getDay() === 1 && diff <= 3)) { // Handle weekend (Mon after Fri)
+          consecutiveDays++;
+        } else {
+          break;
+        }
+        if (consecutiveDays >= 5) return true;
+      }
+      return false;
+    }
+
+    function markAchievementCompleted(userId, achievementName) {
+      const achievementsRef = db.ref("users/" + userId + "/achievements");
+
+      achievementsRef.once("value").then(snapshot => {
+        const achievements = snapshot.val() || {};
+        if (!achievements[achievementName]) {
+          achievementsRef.child(achievementName).set({
+            completed: true,
+            completedDate: new Date().toISOString()
+          });
+          alert(`Congratulations! You've achieved the "${achievementName}"!`);
+        }
+      });
     }
   </script>
 </body>
