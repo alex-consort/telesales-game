@@ -152,7 +152,6 @@
       justify-items: center;
       margin-top: 20px;
     }
-
   </style>
 </head>
 <body>
@@ -186,7 +185,6 @@
     <div class="grid-container" id="objectiveList"></div>
   </div>
 
-  <!-- Load Firebase SDKs from CDN -->
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
@@ -211,7 +209,9 @@
 
     auth.onAuthStateChanged((user) => {
       if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
+        const userId = user.uid;
+        const userPointsRef = db.ref("users/" + userId + "/points");
+
         userPointsRef.on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
@@ -220,6 +220,7 @@
         fetchProducts();
         fetchShortDatedProducts();
         fetchObjectives();
+        displayAchievements(userId);
       } else {
         window.location.href = "login.html";
       }
@@ -315,11 +316,52 @@
               points: points,
               purchaseDate: new Date().toISOString()
             });
+
+            // Check and award achievements
+            checkAchievements(user.uid);
           });
         });
       } else {
         alert("You need to be logged in to earn points.");
       }
+    }
+
+    function displayAchievements(userId) {
+      const achievementsRef = db.ref("achievements/" + userId);
+      achievementsRef.on("value", (snapshot) => {
+        const achievementsDisplay = document.createElement("div");
+        achievementsDisplay.innerHTML = "<h3>Your Achievements:</h3>";
+        snapshot.forEach((childSnapshot) => {
+          const achievementId = childSnapshot.key;
+          if (childSnapshot.val()) {
+            achievementsDisplay.innerHTML += `<p>✔️ ${achievementId.replace(/_/g, " ")}</p>`;
+          }
+        });
+        document.querySelector(".game-container").appendChild(achievementsDisplay);
+      });
+    }
+
+    function updateAchievement(userId, achievementId) {
+      const achievementRef = db.ref("achievements/" + userId + "/" + achievementId);
+      achievementRef.set(true).then(() => {
+        console.log("Achievement unlocked:", achievementId);
+      });
+    }
+
+    function checkAchievements(userId) {
+      db.ref("users/" + userId).once("value").then((snapshot) => {
+        const userData = snapshot.val();
+        const salesCount = userData.itemsSold || 0;
+        const points = userData.points || 0;
+
+        if (salesCount >= 10) updateAchievement(userId, "sales_10");
+        if (salesCount >= 50) updateAchievement(userId, "sales_50");
+        if (salesCount >= 100) updateAchievement(userId, "sales_100");
+
+        if (points >= 500) updateAchievement(userId, "points_500");
+        if (points >= 1000) updateAchievement(userId, "points_1000");
+        if (points >= 5000) updateAchievement(userId, "points_5000");
+      });
     }
   </script>
 </body>
