@@ -234,6 +234,7 @@
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const auth = firebase.auth();
@@ -290,6 +291,7 @@
       const user = auth.currentUser;
       const userPointsRef = db.ref("users/" + user.uid + "/points");
       const purchasesRef = db.ref("purchases");
+      const achievementsRef = db.ref("achievements/" + user.uid);
 
       userPointsRef.transaction((points) => {
         if (points && points >= pointsRequired) {
@@ -308,6 +310,17 @@
             purchaseDate: new Date().toISOString()
           });
           alert("Redemption successful!");
+
+          // Check and update "First Redemption" achievement
+          achievementsRef.child("first_redemption").get().then((snapshot) => {
+            if (!snapshot.exists()) {
+              achievementsRef.update({
+                first_redemption: true
+              }).then(() => {
+                alert("Achievement Unlocked: First Redemption!");
+              }).catch((error) => console.error("Error updating achievement:", error));
+            }
+          }).catch((error) => console.error("Error checking achievement:", error));
         }
       }).catch((error) => console.error("Redemption failed:", error));
     }
