@@ -6,22 +6,37 @@
   <title>Telesales Game Profile</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
+    /* Branding Colours */
+    :root {
+      --blue: #274358;
+      --blue-grey: #617B8F;
+      --light-blue: #97CFF3;
+      --aqua: #A6D9D7;
+      --rose: #FF4E59;
+      --pink: #FFE1F7;
+      --text-dark: #333;
+    }
+
     /* General Styles */
     body {
       font-family: 'Calibri', sans-serif;
       background-color: #f4f6f9;
-      color: #274358;
-      text-align: center;
+      color: var(--text-dark);
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    /* Navbar Styles */
+
+    /* Navbar */
     .navbar {
-      background-color: #617B8F;
-      padding: 10px;
+      background-color: var(--blue-grey);
+      padding: 15px;
       display: flex;
       justify-content: center;
       gap: 20px;
+      width: 100%;
       position: sticky;
       top: 0;
       z-index: 1000;
@@ -31,52 +46,81 @@
       text-decoration: none;
       padding: 10px 15px;
       border-radius: 5px;
-      transition: background 0.3s;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.3s;
     }
     .navbar a:hover {
-      background-color: #FF4E59;
+      background-color: var(--rose);
+      transform: scale(1.1);
     }
+
+    /* Header */
     .header {
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
-      background-color: #617B8F;
+      background-color: var(--blue-grey);
+      width: 100%;
     }
     .logo {
-      height: 50px;
-      margin-right: 20px;
+      height: 60px;
+      margin-right: 15px;
     }
     .game-title {
       color: #FFFFFF;
-      font-size: 1.8em;
+      font-size: 2em;
       font-weight: bold;
     }
+
     /* Profile Card */
     .profile-card {
       background-color: #ffffff;
-      border: 1px solid #617B8F;
-      border-radius: 8px;
-      padding: 20px;
-      margin: 20px auto;
-      max-width: 400px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px auto;
+      max-width: 500px;
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
     }
-    button {
-      padding: 10px 20px;
-      color: #fff;
-      background-color: #274358;
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Text Styles */
+    h2 {
+      font-size: 1.8em;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1.2em;
+      color: var(--blue-grey);
+    }
+
+    /* Buttons */
+    .profile-card button {
+      padding: 12px 25px;
+      color: white;
+      background-color: var(--blue);
       border: none;
-      border-radius: 5px;
-      cursor: pointer;
+      border-radius: 8px;
+      font-size: 1em;
       font-weight: bold;
-      margin-top: 10px;
-      transition: background 0.3s;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      margin: 8px;
       display: inline-block;
     }
-    button:hover {
-      background-color: #FF4E59;
+    .profile-card button:hover {
+      background-color: var(--rose);
+      transform: scale(1.05);
     }
+
   </style>
 </head>
 <body>
@@ -131,16 +175,10 @@
     // Fetch and display user information
     auth.onAuthStateChanged((user) => {
       if (user) {
-        console.log("Authenticated user ID:", user.uid); // Debugging: Check user ID
-
-        // Get user information from the database
         const userRef = db.ref("users/" + user.uid);
         userRef.once("value")
           .then((snapshot) => {
             const userData = snapshot.val();
-            console.log("User data fetched from Firebase:", userData); // Debugging: Log the user data
-
-            // Display user information if available
             if (userData && userData.firstName) {
               document.getElementById("userFirstName").innerText = userData.firstName;
               document.getElementById("userPoints").innerText = userData.points || 0;
@@ -149,30 +187,23 @@
             }
           })
           .catch((error) => {
-            console.error("Error fetching user data:", error); // Log any errors in fetching data
+            console.error("Error fetching user data:", error);
           });
       } else {
-        // Redirect to login if not authenticated
         window.location.href = "login.html";
       }
     });
 
-    // Function to navigate to different pages
-    function goToPage(page) {
-      window.location.href = page;
-    }
-
-    // Log Out Function
+    // Navigation and Log Out Functions
+    function goToPage(page) { window.location.href = page; }
     function logOut() {
-      auth.signOut()
-        .then(() => {
-          alert("Logged out successfully!");
-          window.location.href = "login.html";
-        })
-        .catch((error) => {
-          console.error("Log Out Error:", error);
-          alert("Error: " + error.message);
-        });
+      auth.signOut().then(() => {
+        alert("Logged out successfully!");
+        window.location.href = "login.html";
+      }).catch((error) => {
+        console.error("Log Out Error:", error);
+        alert("Error: " + error.message);
+      });
     }
   </script>
 </body>
