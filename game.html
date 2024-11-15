@@ -229,15 +229,66 @@
     });
 
     function fetchProducts() {
-      // Similar implementation for fetching products
+      const productsRef = db.ref("products");
+      productsRef.once("value", (snapshot) => {
+        const products = snapshot.val();
+        const productList = document.getElementById("productList");
+        productList.innerHTML = "";
+
+        for (const key in products) {
+          const product = products[key];
+          const productCard = document.createElement("div");
+          productCard.className = "item-card";
+          productCard.innerHTML = `
+            <div class="item-name">${product.name}</div>
+            <div class="item-details">${product.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${product.points}, '${product.name}', 'itemsSold')">Earn Points</button>
+          `;
+          productList.appendChild(productCard);
+        }
+      });
     }
 
     function fetchShortDatedProducts() {
-      // Similar implementation for fetching short-dated products
+      const shortDatedRef = db.ref("shortDatedProducts");
+      shortDatedRef.once("value", (snapshot) => {
+        const shortDatedProducts = snapshot.val();
+        const shortDatedList = document.getElementById("shortDatedList");
+        shortDatedList.innerHTML = "";
+
+        for (const key in shortDatedProducts) {
+          const product = shortDatedProducts[key];
+          const shortDatedCard = document.createElement("div");
+          shortDatedCard.className = "item-card";
+          shortDatedCard.innerHTML = `
+            <div class="item-name">${product.description}</div>
+            <div class="item-details">Points: ${product.points}</div>
+            <button class="item-button" onclick="earnPoints(${product.points}, '${product.description}', 'itemsSold')">Earn Points</button>
+          `;
+          shortDatedList.appendChild(shortDatedCard);
+        }
+      });
     }
 
     function fetchObjectives() {
-      // Similar implementation for fetching objectives
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.once("value", (snapshot) => {
+        const objectives = snapshot.val();
+        const objectiveList = document.getElementById("objectiveList");
+        objectiveList.innerHTML = "";
+
+        for (const key in objectives) {
+          const objective = objectives[key];
+          const objectiveCard = document.createElement("div");
+          objectiveCard.className = "item-card";
+          objectiveCard.innerHTML = `
+            <div class="item-name">${objective.name}</div>
+            <div class="item-details">${objective.points} Points</div>
+            <button class="item-button" onclick="earnPoints(${objective.points}, '${objective.name}', 'objectivesCompleted')">Earn Points</button>
+          `;
+          objectiveList.appendChild(objectiveCard);
+        }
+      });
     }
 
     function earnPoints(points, productName, updateField) {
