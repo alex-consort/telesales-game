@@ -6,7 +6,7 @@
   <title>Shopkeeping Dashboard - Telesales Game</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
-    /* General Styles */
+    /* General Styling */
     body {
       font-family: 'Calibri', sans-serif;
       background: linear-gradient(to right, #274358, #617B8F);
@@ -14,6 +14,9 @@
       margin: 0;
       padding: 0;
       overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     /* Navbar */
@@ -23,11 +26,11 @@
       display: flex;
       justify-content: center;
       gap: 20px;
+      width: 100%;
       position: sticky;
       top: 0;
       z-index: 1000;
     }
-
     .navbar a {
       color: #FFF;
       text-decoration: none;
@@ -36,7 +39,6 @@
       font-weight: bold;
       transition: background 0.3s, color 0.3s;
     }
-
     .navbar a:hover {
       background-color: #FF4E59;
       color: #FFF;
@@ -50,116 +52,110 @@
       padding: 20px;
       background: linear-gradient(135deg, #617B8F, #274358);
       box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+      width: 100%;
     }
-
     .logo {
       height: 60px;
-      margin-right: 20px;
+      margin-right: 15px;
     }
-
     .game-title {
-      color: #FFF;
-      font-size: 2.4em;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      color: #FFFFFF;
+      font-size: 2em;
+      font-weight: bold;
     }
 
     /* Dashboard Container */
     .dashboard {
-      max-width: 900px;
-      margin: 40px auto;
-      padding: 30px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 15px;
-      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
-      color: #274358;
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
       justify-content: center;
-    }
-
-    /* Cards */
-    .card {
-      background: linear-gradient(to bottom right, #f4f6f9, #d3e3f0);
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 15px;
-      padding: 20px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
       color: #274358;
     }
 
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0px 15px 25px rgba(0, 0, 0, 0.2);
+    /* Card Styling */
+    .card {
+      background-color: #f4f6f9;
+      border-radius: 12px;
+      padding: 20px;
+      flex: 1 1 45%;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      margin: 10px;
+      max-width: 500px;
+      animation: fadeIn 0.8s ease;
     }
 
-    /* Input and Button Styling */
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #97CFF3;
-      border-radius: 10px;
-      box-sizing: border-box;
-      font-size: 1em;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    button {
-      padding: 10px 20px;
-      color: #FFF;
-      background: linear-gradient(to right, #FF4E59, #FF6472);
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 1em;
-      transition: background 0.3s;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    button:hover {
-      background: linear-gradient(to right, #FF3045, #FF5160);
-    }
-
-    /* Table Styling */
+    /* Table Styles */
     table {
       width: 100%;
       margin-top: 20px;
       border-collapse: collapse;
       color: #274358;
+      font-size: 0.95em;
     }
-
     th, td {
-      padding: 15px;
+      padding: 12px 15px;
       text-align: left;
       border-bottom: 1px solid #ddd;
     }
-
     th {
       background-color: #617B8F;
       color: white;
+    }
+
+    /* Input and Button Styles */
+    input {
+      width: calc(100% - 30px);
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #97CFF3;
+      border-radius: 8px;
+      box-sizing: border-box;
+      color: #274358;
+    }
+    button {
+      padding: 10px 20px;
+      color: #FFFFFF;
+      background-color: #FF4E59;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
       font-weight: bold;
+      transition: background 0.3s, transform 0.3s;
+      display: inline-block;
+      margin-top: 10px;
+    }
+    button:hover {
+      background-color: #FF6472;
+      transform: scale(1.05);
     }
 
     /* Action Buttons */
-    .complete-button, .clear-button {
-      padding: 5px 10px;
-      font-size: 0.9em;
-      margin: 5px;
+    .complete-button, .clear-button, .remove-button {
       background-color: #FF4E59;
-      color: white;
+      padding: 8px 12px;
+      color: #FFF;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      font-size: 0.9em;
+      font-weight: bold;
+      margin: 5px;
       transition: background 0.3s;
     }
-
-    .complete-button:hover, .clear-button:hover {
-      background-color: #274358;
+    .complete-button:hover, .clear-button:hover, .remove-button:hover {
+      background-color: #FF3045;
     }
   </style>
 </head>
@@ -167,13 +163,11 @@
 
   <div class="navbar">
     <a href="profile.html">Profile</a>
+    <a href="dashboard.html">Leaderboard</a>
     <a href="game.html">Play Game</a>
     <a href="shop.html">Shop</a>
     <a href="achievements.html">Achievements</a>
     <a href="settings.html">Settings</a>
-    <a href="supervisor.html">Supervisor</a>
-    <a href="shopkeeping.html">Shopkeeping</a>
-    <a href="history.html">History</a>
     <a href="logout.html">Log Out</a>
   </div>
 
@@ -183,7 +177,7 @@
   </header>
 
   <div class="dashboard">
-    <!-- Add and Remove Shop Items -->
+    <!-- Manage Shop Items Card -->
     <div class="card" id="productsCard">
       <h2>Manage Shop Items</h2>
       <div id="productList"></div>
@@ -193,7 +187,7 @@
       <button onclick="addProduct()">Add Product</button>
     </div>
 
-    <!-- Redemption Table -->
+    <!-- Redemptions Made Card -->
     <div class="card" id="redemptionCard">
       <h2>Redemptions Made</h2>
       <table id="redemptionTable">
@@ -221,7 +215,7 @@
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.appspot.com",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
@@ -241,7 +235,7 @@
           productList.innerHTML += `
             <div>
               <strong>${product.name}</strong> - ${product.points} Points
-              <button class="clear-button" onclick="removeProduct('${productId}')">Remove Product</button>
+              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
             </div>`;
         });
       });
@@ -316,7 +310,6 @@
 
     function markAsComplete(redemptionId) {
       const redemptionRef = db.ref("purchases/" + redemptionId);
-
       redemptionRef.update({ status: "Completed" })
         .then(() => {
           alert("Redemption marked as completed!");
