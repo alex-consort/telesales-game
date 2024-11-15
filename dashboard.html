@@ -286,25 +286,26 @@
               <td>${entry.itemsSold} items</td>
               <td>${entry.objectivesCompleted} objectives</td>
             `;
-            row.onclick = () => openModal(entry.userId, entry.name, rank);
+            row.onclick = () => openModal(entry.userId, entry.name); // Add click event
             leaderboardList.appendChild(row);
-
-            if (rank <= 5) {
-              checkLeaderboardAchievements(entry.userId, rank);
-            }
-
             rank++;
           });
         });
     }
 
-    function openModal(userId, userName, rank) {
+    function openModal(userId, userName) {
       document.getElementById("modalUserName").innerText = userName;
       const modalContent = document.getElementById("modalContent");
       modalContent.innerHTML = "Loading...";
 
+      // Fetch user statistics and achievements
       db.ref(`users/${userId}`).once("value").then((snapshot) => {
         const data = snapshot.val();
+        if (!data) {
+          modalContent.innerHTML = "<p>No data available for this user.</p>";
+          return;
+        }
+
         const achievements = data.achievements || {};
         const achievementsList = Object.keys(achievements)
           .filter(key => achievements[key])
@@ -319,15 +320,10 @@
           <ul>${achievementsList}</ul>
         `;
         document.getElementById("userModal").style.display = "block";
+      }).catch((error) => {
+        console.error("Error fetching achievements:", error);
+        modalContent.innerHTML = "<p>Error loading achievements.</p>";
       });
-    }
-
-    function checkLeaderboardAchievements(userId, rank) {
-      const achievementsRef = db.ref(`achievements/${userId}`);
-      if (rank <= 5) {
-        achievementsRef.child("top_seller").set(true);
-      }
-      // Additional achievements for specific ranks can be added here if needed.
     }
 
     function formatAchievementTitle(key) {
