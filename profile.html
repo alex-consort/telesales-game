@@ -6,24 +6,14 @@
   <title>Telesales Game Profile</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
-    /* Branding Colours */
-    :root {
-      --blue: #274358;
-      --blue-grey: #617B8F;
-      --light-blue: #97CFF3;
-      --aqua: #A6D9D7;
-      --rose: #FF4E59;
-      --pink: #FFE1F7;
-      --text-dark: #333;
-    }
-
     /* General Styles */
     body {
       font-family: 'Calibri', sans-serif;
-      background-color: #f4f6f9;
-      color: var(--text-dark);
+      background: linear-gradient(to right, #274358, #617B8F);
+      color: #FFFFFF;
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -31,27 +21,29 @@
 
     /* Navbar */
     .navbar {
-      background-color: var(--blue-grey);
+      background: rgba(0, 0, 0, 0.6);
       padding: 15px;
       display: flex;
       justify-content: center;
       gap: 20px;
-      width: 100%;
       position: sticky;
       top: 0;
       z-index: 1000;
+      width: 100%;
     }
+
     .navbar a {
-      color: white;
+      color: #FFF;
       text-decoration: none;
-      padding: 10px 15px;
-      border-radius: 5px;
+      padding: 10px 20px;
+      border-radius: 25px;
       font-weight: bold;
-      transition: background 0.3s, transform 0.3s;
+      transition: background 0.3s, color 0.3s;
     }
+
     .navbar a:hover {
-      background-color: var(--rose);
-      transform: scale(1.1);
+      background-color: #FF4E59;
+      color: #FFF;
     }
 
     /* Header */
@@ -60,27 +52,33 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
-      background-color: var(--blue-grey);
+      background: linear-gradient(135deg, #617B8F, #274358);
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
       width: 100%;
     }
+
     .logo {
       height: 60px;
       margin-right: 15px;
     }
+
     .game-title {
-      color: #FFFFFF;
-      font-size: 2em;
-      font-weight: bold;
+      color: #FFF;
+      font-size: 2.4em;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
     /* Profile Card */
     .profile-card {
-      background-color: #ffffff;
-      border-radius: 12px;
-      padding: 25px;
-      margin: 30px auto;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 30px;
+      margin: 40px auto;
       max-width: 500px;
-      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+      color: #274358;
       text-align: center;
       animation: fadeIn 1s ease-in-out;
     }
@@ -94,42 +92,46 @@
     /* Text Styles */
     h2 {
       font-size: 1.8em;
-      color: var(--blue);
+      color: #274358;
       margin-bottom: 10px;
     }
     p {
       font-size: 1.2em;
-      color: var(--blue-grey);
+      color: #617B8F;
     }
 
     /* Profile Info Styles */
     .profile-info {
       margin-top: 20px;
       text-align: left;
-      color: var(--blue);
       font-size: 1em;
+      color: #274358;
+    }
+    .profile-info p {
+      margin: 5px 0;
     }
     .profile-info span {
       font-weight: bold;
-      color: var(--text-dark);
+      color: #333;
     }
 
     /* Buttons */
     .profile-card button {
       padding: 12px 25px;
       color: white;
-      background-color: var(--blue);
+      background: linear-gradient(to right, #FF4E59, #FF6472);
       border: none;
-      border-radius: 8px;
+      border-radius: 25px;
       font-size: 1em;
       font-weight: bold;
       cursor: pointer;
       transition: background 0.3s, transform 0.3s;
       margin: 8px;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
       display: inline-block;
     }
     .profile-card button:hover {
-      background-color: var(--rose);
+      background: linear-gradient(to right, #FF3045, #FF5160);
       transform: scale(1.05);
     }
 
