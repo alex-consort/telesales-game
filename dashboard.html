@@ -15,35 +15,47 @@
       --rose: #FF4E59;
       --pink: #FFE1F7;
       --text-dark: #333;
+      --white: #ffffff;
     }
 
     /* Page Layout and Style */
     body {
       font-family: Calibri, sans-serif;
-      background-color: #f4f6f9;
+      background: linear-gradient(to right, #274358, #617B8F);
       color: var(--text-dark);
       margin: 0;
       padding: 0;
+      overflow-x: hidden;
     }
+
     .container {
       max-width: 1200px;
-      margin: 0 auto;
+      margin: 40px auto;
       padding: 20px;
       text-align: center;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
     }
+
     h1 {
       color: var(--blue);
       font-size: 2.5em;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
+
     .logo {
       margin-top: 20px;
-      width: 200px;
+      width: 180px;
     }
+
     /* Navbar Styles */
     .navbar {
-      background-color: #617B8F;
-      padding: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 15px;
       display: flex;
       justify-content: center;
       gap: 20px;
@@ -51,53 +63,108 @@
       top: 0;
       z-index: 1000;
     }
+
     .navbar a {
-      color: white;
+      color: var(--white);
       text-decoration: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      transition: background 0.3s;
+      padding: 10px 20px;
+      border-radius: 25px;
+      font-weight: bold;
+      transition: background 0.3s, color 0.3s;
     }
+
     .navbar a:hover {
-      background-color: #FF4E59;
+      background-color: var(--rose);
+      color: var(--white);
     }
+
     /* Cards */
     .card {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      padding: 20px;
+      background: linear-gradient(to bottom right, #f4f6f9, #d3e3f0);
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      padding: 30px;
       margin: 20px auto;
-      transition: transform 0.2s;
+      max-width: 600px;
+      transition: transform 0.3s;
     }
+
     .card:hover {
-      transform: scale(1.02);
+      transform: scale(1.03);
     }
+
+    h2 {
+      font-size: 1.8em;
+      color: var(--blue);
+      margin-bottom: 15px;
+      border-bottom: 2px solid var(--blue-grey);
+      padding-bottom: 10px;
+    }
+
+    p {
+      color: var(--text-dark);
+      font-size: 1.1em;
+    }
+
     /* Table Styles */
     table {
       width: 100%;
       margin-top: 20px;
       border-collapse: collapse;
+      border-radius: 15px;
+      overflow: hidden;
     }
+
     table, th, td {
       border: 1px solid #ddd;
     }
+
     th, td {
-      padding: 12px 20px;
+      padding: 15px 20px;
       text-align: left;
+      font-size: 1em;
     }
+
     th {
-      background-color: var(--blue-grey);
-      color: white;
+      background: var(--blue-grey);
+      color: var(--white);
+      text-transform: uppercase;
     }
+
     tr:nth-child(even) {
       background-color: #f9f9f9;
     }
+
     tr:hover {
-      background-color: #f1f1f1;
+      background-color: rgba(97, 123, 143, 0.2);
+      cursor: pointer;
     }
+
     .filter-container {
       margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .filter-container label {
+      font-size: 1em;
+      margin-right: 10px;
+      color: var(--blue);
+      font-weight: bold;
+    }
+
+    .filter-container select {
+      padding: 10px;
+      border-radius: 25px;
+      border: 1px solid var(--blue-grey);
+      outline: none;
+      font-size: 1em;
+      transition: all 0.3s;
+    }
+
+    .filter-container select:focus {
+      box-shadow: 0 0 8px rgba(39, 67, 88, 0.5);
     }
   </style>
 </head>
@@ -129,7 +196,7 @@
 
     <!-- Depot Filter -->
     <div class="filter-container">
-      <label for="depotFilter">Filter by Depot: </label>
+      <label for="depotFilter">Filter by Depot:</label>
       <select id="depotFilter" onchange="filterByDepot()">
         <option value="">All Depots</option>
         <option value="Burgess Hill">Burgess Hill</option>
@@ -184,22 +251,10 @@
     // Fetch and display user information
     auth.onAuthStateChanged((user) => {
       if (user) {
-        console.log("Authenticated user ID:", user.uid); // Debugging: Check user ID
-
-        // Get user information from the database
         const userRef = db.ref("users/" + user.uid);
         userRef.once("value")
           .then((snapshot) => {
             const userData = snapshot.val();
-            console.log("User data fetched from Firebase:", userData); // Debugging: Log the user data
-
-            // Initialize missing fields if they don't exist
-            if (!userData.itemsSold) {
-              userRef.update({ itemsSold: 0 });
-            }
-            if (!userData.objectivesCompleted) {
-              userRef.update({ objectivesCompleted: 0 });
-            }
 
             // Display user information
             document.getElementById("userName").innerText = `${userData.firstName} ${userData.lastName}`;
@@ -208,15 +263,9 @@
             document.getElementById("userItemsSold").innerText = userData.itemsSold || 0;
             document.getElementById("userObjectivesCompleted").innerText = userData.objectivesCompleted || 0;
 
-            // Fetch and display leaderboard
             fetchLeaderboard();
-          })
-          .catch((error) => {
-            console.error("Error fetching user data:", error);
           });
-
       } else {
-        // Redirect to login if not authenticated
         window.location.href = "login.html";
       }
     });
@@ -228,9 +277,8 @@
         .then((snapshot) => {
           const leaderboard = snapshot.val();
           const leaderboardList = document.getElementById("leaderboard");
-          leaderboardList.innerHTML = ""; // Clear existing entries
+          leaderboardList.innerHTML = ""; 
 
-          // Create an array to sort leaderboard entries
           const entries = [];
           for (const userId in leaderboard) {
             const user = leaderboard[userId];
@@ -243,10 +291,8 @@
             });
           }
 
-          // Sort entries by points in descending order
           entries.sort((a, b) => b.points - a.points);
 
-          // Create leaderboard entries
           let rank = 1;
           entries.forEach(entry => {
             const row = document.createElement("tr");
@@ -260,24 +306,16 @@
             `;
             leaderboardList.appendChild(row);
           });
-        })
-        .catch((error) => {
-          console.error("Error fetching leaderboard data:", error);
         });
     }
 
-    // Function to filter the leaderboard by Depot
     function filterByDepot() {
       const selectedDepot = document.getElementById("depotFilter").value;
       const leaderboardRows = document.querySelectorAll("#leaderboard tr");
 
       leaderboardRows.forEach(row => {
-        const depotCell = row.cells[3]; // The Depot column
-        if (selectedDepot === "" || depotCell.innerText === selectedDepot) {
-          row.style.display = ""; // Show the row
-        } else {
-          row.style.display = "none"; // Hide the row
-        }
+        const depotCell = row.cells[3];
+        row.style.display = selectedDepot === "" || depotCell.innerText === selectedDepot ? "" : "none";
       });
     }
   </script>
