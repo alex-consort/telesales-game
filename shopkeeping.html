@@ -6,107 +6,173 @@
   <title>Shopkeeping Dashboard - Telesales Game</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
+    /* Branding Colours */
+    :root {
+      --blue: #274358;
+      --blue-grey: #617B8F;
+      --light-blue: #97CFF3;
+      --aqua: #A6D9D7;
+      --rose: #FF4E59;
+      --pink: #FFE1F7;
+      --text-dark: #333;
+    }
+
+    /* General Styles */
     body {
       font-family: 'Calibri', sans-serif;
       background-color: #f4f6f9;
-      color: #274358;
+      color: var(--text-dark);
       text-align: center;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
+
+    /* Navbar */
     .navbar {
-      background-color: #617B8F;
-      padding: 10px;
+      background-color: var(--blue-grey);
+      padding: 15px;
       display: flex;
       justify-content: center;
       gap: 20px;
+      width: 100%;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
     .navbar a {
       color: white;
       text-decoration: none;
       padding: 10px 15px;
       border-radius: 5px;
-      transition: background 0.3s;
+      font-weight: bold;
+      transition: background 0.3s, transform 0.3s;
     }
     .navbar a:hover {
-      background-color: #FF4E59;
+      background-color: var(--rose);
+      transform: scale(1.1);
     }
+
+    /* Header */
     .header {
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 20px;
-      background-color: #617B8F;
+      background-color: var(--blue-grey);
+      width: 100%;
     }
     .logo {
-      height: 50px;
-      margin-right: 20px;
+      height: 60px;
+      margin-right: 15px;
     }
     .game-title {
       color: #FFFFFF;
-      font-size: 1.8em;
+      font-size: 2em;
       font-weight: bold;
     }
+
+    /* Dashboard */
     .dashboard {
       display: flex;
       justify-content: space-around;
       padding: 20px;
       flex-wrap: wrap;
+      max-width: 1200px;
+      width: 100%;
+      margin: 20px auto;
+      gap: 20px;
     }
+
+    /* Cards */
     .card {
       background-color: #ffffff;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-      width: 30%;
-      margin-bottom: 20px;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 500px;
       text-align: left;
+      transition: transform 0.3s, box-shadow 0.3s;
+      animation: fadeIn 1s ease-in-out;
     }
+    .card:hover {
+      transform: scale(1.02);
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Button Styles */
     button {
-      padding: 10px 20px;
-      color: #fff;
-      background-color: #274358;
+      padding: 12px 25px;
+      color: white;
+      background-color: var(--blue);
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      font-size: 1em;
       font-weight: bold;
-      margin-top: 10px;
+      transition: background 0.3s, transform 0.3s;
     }
     button:hover {
-      background-color: #FF4E59;
-    }
-    input {
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #97CFF3;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
-    table {
-      width: 100%;
-      margin-top: 20px;
-      border-collapse: collapse;
-    }
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border: 1px solid #ddd;
-    }
-    th {
-      background-color: #617B8F;
-      color: white;
+      background-color: var(--rose);
+      transform: scale(1.05);
     }
     .complete-button, .clear-button {
       padding: 5px 10px;
-      background-color: #FF4E59;
+      font-size: 0.9em;
+      margin: 5px;
+      background-color: var(--rose);
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      transition: background 0.3s;
     }
     .complete-button:hover, .clear-button:hover {
-      background-color: #274358;
+      background-color: var(--blue);
+    }
+
+    /* Input Styles */
+    input {
+      width: 100%;
+      max-width: 450px;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid var(--light-blue);
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 1em;
+      color: var(--text-dark);
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+      font-size: 1em;
+    }
+    th {
+      background-color: var(--blue-grey);
+      color: white;
+      font-weight: bold;
+    }
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
     }
   </style>
 </head>
@@ -189,7 +255,7 @@
           productList.innerHTML += `
             <div>
               <strong>${product.name}</strong> - ${product.points} Points
-              <button class="remove-button" onclick="removeProduct('${productId}')">Remove Product</button>
+              <button class="clear-button" onclick="removeProduct('${productId}')">Remove Product</button>
             </div>`;
         });
       });
@@ -245,7 +311,6 @@
             year: "numeric"
           });
 
-          // Fetch user details
           db.ref('users/' + userId).once('value').then(userSnapshot => {
             const user = userSnapshot.val();
             const userName = `${user.firstName || 'Unknown'} ${user.lastName || ''}`;
