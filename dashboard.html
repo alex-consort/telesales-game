@@ -286,19 +286,23 @@
               <td>${entry.itemsSold} items</td>
               <td>${entry.objectivesCompleted} objectives</td>
             `;
-            row.onclick = () => openModal(entry.userId, entry.name); // Add click event
+            row.onclick = () => openModal(entry.userId, entry.name, rank);
             leaderboardList.appendChild(row);
+
+            if (rank <= 5) {
+              checkLeaderboardAchievements(entry.userId, rank);
+            }
+
             rank++;
           });
         });
     }
 
-    function openModal(userId, userName) {
+    function openModal(userId, userName, rank) {
       document.getElementById("modalUserName").innerText = userName;
       const modalContent = document.getElementById("modalContent");
       modalContent.innerHTML = "Loading...";
 
-      // Fetch user statistics and achievements
       db.ref(`users/${userId}`).once("value").then((snapshot) => {
         const data = snapshot.val();
         const achievements = data.achievements || {};
@@ -316,6 +320,14 @@
         `;
         document.getElementById("userModal").style.display = "block";
       });
+    }
+
+    function checkLeaderboardAchievements(userId, rank) {
+      const achievementsRef = db.ref(`achievements/${userId}`);
+      if (rank <= 5) {
+        achievementsRef.child("top_seller").set(true);
+      }
+      // Additional achievements for specific ranks can be added here if needed.
     }
 
     function formatAchievementTitle(key) {
