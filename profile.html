@@ -102,6 +102,18 @@
       color: var(--blue-grey);
     }
 
+    /* Profile Info Styles */
+    .profile-info {
+      margin-top: 20px;
+      text-align: left;
+      color: var(--blue);
+      font-size: 1em;
+    }
+    .profile-info span {
+      font-weight: bold;
+      color: var(--text-dark);
+    }
+
     /* Buttons */
     .profile-card button {
       padding: 12px 25px;
@@ -144,6 +156,16 @@
   <div class="profile-card">
     <h2>Welcome, <span id="userFirstName">User</span>!</h2>
     <p>Current Points: <span id="userPoints">0</span></p>
+    
+    <!-- Additional Profile Information -->
+    <div class="profile-info">
+      <p>Email: <span id="userEmail">example@example.com</span></p>
+      <p>Depot: <span id="userDepot">N/A</span></p>
+      <p>Level: <span id="userLevel">0</span></p>
+      <p>Items Sold: <span id="userItemsSold">0</span></p>
+      <p>Objectives Completed: <span id="userObjectivesCompleted">0</span></p>
+    </div>
+
     <button onclick="goToPage('game.html')">Play Game</button>
     <button onclick="goToPage('achievements.html')">Achievements</button>
     <button onclick="goToPage('settings.html')">Settings</button>
@@ -179,11 +201,17 @@
         userRef.once("value")
           .then((snapshot) => {
             const userData = snapshot.val();
-            if (userData && userData.firstName) {
-              document.getElementById("userFirstName").innerText = userData.firstName;
+            if (userData) {
+              // Display fetched user information
+              document.getElementById("userFirstName").innerText = userData.firstName || "User";
               document.getElementById("userPoints").innerText = userData.points || 0;
+              document.getElementById("userEmail").innerText = user.email || "N/A";
+              document.getElementById("userDepot").innerText = userData.depot || "N/A";
+              document.getElementById("userLevel").innerText = userData.level || 0;
+              document.getElementById("userItemsSold").innerText = userData.itemsSold || 0;
+              document.getElementById("userObjectivesCompleted").innerText = userData.objectivesCompleted || 0;
             } else {
-              console.warn("First name not found in user data.");
+              console.warn("User data not found in database.");
             }
           })
           .catch((error) => {
