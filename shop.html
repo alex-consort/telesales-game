@@ -6,22 +6,20 @@
   <title>Shop - Telesales Game</title>
   <link rel="icon" href="https://consortfrozenfoods.co.uk/wp-content/uploads/2024/10/favicon-consort-1-1.png">
   <style>
-    /* Branding Colours */
+    /* General Styles */
     :root {
       --blue: #274358;
       --blue-grey: #617B8F;
       --light-blue: #97CFF3;
       --aqua: #A6D9D7;
       --rose: #FF4E59;
-      --pink: #FFE1F7;
       --text-dark: #333;
     }
 
-    /* General Styles */
     body {
       font-family: 'Calibri', sans-serif;
-      background-color: #f4f6f9;
-      color: var(--text-dark);
+      background: linear-gradient(to right, #274358, #617B8F);
+      color: #FFFFFF;
       text-align: center;
       margin: 0;
       padding: 0;
@@ -32,7 +30,7 @@
 
     /* Navbar */
     .navbar {
-      background-color: var(--blue-grey);
+      background: rgba(0, 0, 0, 0.6);
       padding: 15px;
       display: flex;
       justify-content: center;
@@ -43,16 +41,16 @@
       z-index: 1000;
     }
     .navbar a {
-      color: white;
+      color: #FFF;
       text-decoration: none;
-      padding: 10px 15px;
-      border-radius: 5px;
+      padding: 10px 20px;
+      border-radius: 25px;
       font-weight: bold;
-      transition: background 0.3s, transform 0.3s;
+      transition: background 0.3s, color 0.3s;
     }
     .navbar a:hover {
-      background-color: var(--rose);
-      transform: scale(1.1);
+      background-color: #FF4E59;
+      color: #FFF;
     }
 
     /* Header */
@@ -61,7 +59,8 @@
       justify-content: center;
       align-items: center;
       padding: 20px;
-      background-color: var(--blue-grey);
+      background: linear-gradient(135deg, #617B8F, #274358);
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
       width: 100%;
     }
     .logo {
@@ -77,31 +76,27 @@
     /* Shop Container */
     .shop-container {
       max-width: 900px;
-      margin: 20px auto;
+      margin: 40px auto;
       padding: 25px;
-      background-color: #ffffff;
-      border-radius: 12px;
-      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.15);
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+      color: #274358;
       animation: fadeIn 1s ease-in-out;
-      text-align: center;
     }
 
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
+    /* Points Display */
     .points-display {
-      font-size: 1.4em;
-      color: var(--blue-grey);
-      margin-bottom: 20px;
+      font-size: 1.5em;
+      color: var(--rose);
       font-weight: bold;
+      text-shadow: 1px 1px 2px #FFFFFF;
+      margin-bottom: 30px;
     }
 
     /* Item Cards */
     .item-card {
-      background-color: #f9f9f9;
+      background: linear-gradient(to bottom right, #f4f6f9, #d3e3f0);
       border: 1px solid #ddd;
       border-radius: 12px;
       padding: 20px;
@@ -122,27 +117,28 @@
       font-weight: bold;
       color: var(--blue);
       margin-bottom: 10px;
+      text-align: center;
     }
     .item-details {
       font-size: 1em;
       color: var(--blue-grey);
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       text-align: center;
     }
     .item-button {
       padding: 12px 25px;
       color: white;
-      background-color: var(--blue);
+      background: linear-gradient(to right, #FF4E59, #FF6472);
       border: none;
-      border-radius: 8px;
+      border-radius: 25px;
       cursor: pointer;
       font-size: 1em;
       font-weight: bold;
-      transition: background 0.3s, transform 0.3s;
+      transition: background 0.3s;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
     }
     .item-button:hover {
-      background-color: var(--rose);
-      transform: scale(1.05);
+      background: linear-gradient(to right, #FF3045, #FF5160);
     }
 
     /* Grid Container */
@@ -151,17 +147,19 @@
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 25px;
       justify-items: center;
+      margin-top: 20px;
     }
 
     /* Purchase History Section */
     .history-section {
-      margin-top: 30px;
+      margin-top: 40px;
       text-align: left;
+      color: var(--blue-grey);
     }
     .history-section h3 {
       font-size: 1.5em;
       color: var(--blue);
-      margin-bottom: 10px;
+      margin-bottom: 15px;
       border-bottom: 2px solid var(--light-blue);
       display: inline-block;
     }
@@ -169,14 +167,19 @@
       list-style: none;
       padding: 0;
       margin: 0;
-      color: var(--blue-grey);
     }
     .history-section li {
-      padding: 10px;
-      background-color: #f1f1f1;
+      padding: 12px;
+      background-color: #f9f9f9;
       margin-bottom: 10px;
       border-radius: 8px;
       box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
   </style>
@@ -236,8 +239,6 @@
     const auth = firebase.auth();
 
     let currentPoints = 0;
-    let firstName = "Unknown";
-    let lastName = "Unknown";
 
     auth.onAuthStateChanged((user) => {
       if (user) {
@@ -245,8 +246,6 @@
         userRef.on("value", (snapshot) => {
           const userData = snapshot.val();
           currentPoints = userData.points || 0;
-          firstName = userData.firstName || "Unknown";
-          lastName = userData.lastName || "Unknown";
           document.getElementById("userPoints").innerText = currentPoints;
         });
         fetchShopItems();
@@ -291,7 +290,6 @@
       const user = auth.currentUser;
       const userPointsRef = db.ref("users/" + user.uid + "/points");
       const purchasesRef = db.ref("purchases");
-      const masterHistoryRef = db.ref("masterHistory");
 
       userPointsRef.transaction((points) => {
         if (points && points >= pointsRequired) {
@@ -302,19 +300,13 @@
         }
       }).then((result) => {
         if (result.committed) {
-          const redemptionData = {
+          purchasesRef.push({
             userId: user.uid,
             itemId: itemId,
             itemName: itemName,
             pointsSpent: -pointsRequired,
-            purchaseDate: new Date().toISOString(),
-            firstName: firstName,
-            lastName: lastName
-          };
-
-          purchasesRef.push(redemptionData);
-          masterHistoryRef.push({ ...redemptionData, actionType: "Redemption" });
-
+            purchaseDate: new Date().toISOString()
+          });
           alert("Redemption successful!");
         }
       }).catch((error) => console.error("Redemption failed:", error));
