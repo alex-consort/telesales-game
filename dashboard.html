@@ -301,14 +301,13 @@
       // Fetch user statistics and achievements
       db.ref(`users/${userId}`).once("value").then((snapshot) => {
         const data = snapshot.val();
-        if (!data) {
-          modalContent.innerHTML = "<p>No data available for this user.</p>";
-          return;
-        }
-
         const achievements = data.achievements || {};
+        
+        // Logging for debugging
+        console.log("Achievements data for user:", achievements);
+        
         const achievementsList = Object.keys(achievements)
-          .filter(key => achievements[key])
+          .filter(key => achievements[key])  // Only completed achievements
           .map(key => `<li>${formatAchievementTitle(key)}</li>`)
           .join("") || "<li>No achievements yet.</li>";
 
@@ -320,10 +319,7 @@
           <ul>${achievementsList}</ul>
         `;
         document.getElementById("userModal").style.display = "block";
-      }).catch((error) => {
-        console.error("Error fetching achievements:", error);
-        modalContent.innerHTML = "<p>Error loading achievements.</p>";
-      });
+      }).catch(error => console.error("Error fetching user data:", error));
     }
 
     function formatAchievementTitle(key) {
