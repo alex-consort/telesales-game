@@ -130,12 +130,22 @@
       margin-top: 20px;
     }
 
+    /* Category Heading */
+    .category-heading {
+      font-size: 1.5em;
+      color: var(--blue-grey);
+      margin-top: 40px;
+      text-align: left;
+      width: 100%;
+      border-bottom: 2px solid var(--light-blue);
+      padding-bottom: 5px;
+    }
+
     /* Animations */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
   </style>
 </head>
 <body>
@@ -158,9 +168,28 @@
   <div class="achievements-container">
     <h2>Your Achievements</h2>
     
-    <!-- Achievements Grid -->
-    <div class="grid-container" id="achievementsGrid">
-      <!-- Achievements are populated here -->
+    <!-- Points Category -->
+    <div class="category-heading">Points Milestones</div>
+    <div class="grid-container" id="pointsAchievements">
+      <!-- Points achievements populated here -->
+    </div>
+
+    <!-- Sales Category -->
+    <div class="category-heading">Sales Milestones</div>
+    <div class="grid-container" id="salesAchievements">
+      <!-- Sales achievements populated here -->
+    </div>
+
+    <!-- Redemption Category -->
+    <div class="category-heading">Redemption Milestones</div>
+    <div class="grid-container" id="redemptionAchievements">
+      <!-- Redemption achievements populated here -->
+    </div>
+
+    <!-- Special Achievements Category -->
+    <div class="category-heading">Special Achievements</div>
+    <div class="grid-container" id="specialAchievements">
+      <!-- Special achievements populated here -->
     </div>
   </div>
 
@@ -185,6 +214,32 @@
     const db = firebase.database();
     const auth = firebase.auth();
 
+    const achievementsCategories = {
+      pointsAchievements: {
+        hundred_points: "Earned 100 Points",
+        five_hundred_points: "Earned 500 Points",
+        thousand_points: "Earned 1000 Points",
+        high_roller: "High Roller (10,000 Points)"
+      },
+      salesAchievements: {
+        sales_10: "Made 10 Sales",
+        sales_50: "Made 50 Sales",
+        sales_100: "Made 100 Sales",
+        seasoned_seller: "Seasoned Seller (200 Sales)"
+      },
+      redemptionAchievements: {
+        first_redemption: "First Redemption",
+        ten_redemptions: "10 Redemptions",
+        fifty_redemptions: "50 Redemptions"
+      },
+      specialAchievements: {
+        weekly_streak: "Weekly Streak (5 Consecutive Days)",
+        top_seller: "Top Seller (Top 5 Leaderboard)",
+        objective_master: "Objective Master (10 Objectives)",
+        goal_getter: "Goal Getter (All Monthly Goals)"
+      }
+    };
+
     auth.onAuthStateChanged((user) => {
       if (user) {
         displayAchievements(user.uid);
@@ -195,45 +250,46 @@
 
     function displayAchievements(userId) {
       const achievementsRef = db.ref("achievements/" + userId);
-      const achievementsGrid = document.getElementById("achievementsGrid");
-      achievementsGrid.innerHTML = "";
-
-      const availableAchievements = {
-        first_redemption: "First Redemption",
-        ten_redemptions: "10 Redemptions",
-        fifty_redemptions: "50 Redemptions",
-        hundred_points: "Earned 100 Points",
-        five_hundred_points: "Earned 500 Points",
-        thousand_points: "Earned 1000 Points",
-        // Add additional achievement definitions as needed
-      };
 
       achievementsRef.on("value", (snapshot) => {
         const userAchievements = snapshot.val() || {};
 
-        for (const [key, title] of Object.entries(availableAchievements)) {
-          const isCompleted = userAchievements[key];
-          const achievementCard = document.createElement("div");
-          achievementCard.className = `achievement-card ${isCompleted ? 'completed' : ''}`;
-          achievementCard.innerHTML = `
-            <div class="achievement-title">${title}</div>
-            <div class="achievement-description">${getAchievementDescription(key)}</div>
-            <div class="achievement-status">${isCompleted ? 'Completed' : 'Incomplete'}</div>
-          `;
-          achievementsGrid.appendChild(achievementCard);
+        for (const [categoryId, achievements] of Object.entries(achievementsCategories)) {
+          const container = document.getElementById(categoryId);
+          container.innerHTML = "";
+
+          for (const [key, title] of Object.entries(achievements)) {
+            const isCompleted = userAchievements[key];
+            const achievementCard = document.createElement("div");
+            achievementCard.className = `achievement-card ${isCompleted ? 'completed' : ''}`;
+            achievementCard.innerHTML = `
+              <div class="achievement-title">${title}</div>
+              <div class="achievement-description">${getAchievementDescription(key)}</div>
+              <div class="achievement-status">${isCompleted ? 'Completed' : 'Incomplete'}</div>
+            `;
+            container.appendChild(achievementCard);
+          }
         }
       });
     }
 
     function getAchievementDescription(key) {
       const descriptions = {
-        first_redemption: "Redeem your first item in the shop.",
-        ten_redemptions: "Redeem 10 items in the shop.",
-        fifty_redemptions: "Redeem 50 items in the shop.",
         hundred_points: "Earn a total of 100 points.",
         five_hundred_points: "Earn a total of 500 points.",
         thousand_points: "Earn a total of 1000 points.",
-        // Add additional descriptions as needed
+        high_roller: "Achieve a massive 10,000 points.",
+        sales_10: "Complete 10 sales.",
+        sales_50: "Complete 50 sales.",
+        sales_100: "Complete 100 sales.",
+        seasoned_seller: "Complete 200 sales.",
+        first_redemption: "Redeem your first item in the shop.",
+        ten_redemptions: "Redeem 10 items in the shop.",
+        fifty_redemptions: "Redeem 50 items in the shop.",
+        weekly_streak: "Log in for 5 consecutive days.",
+        top_seller: "Reach the top 5 in the leaderboard.",
+        objective_master: "Complete 10 objectives.",
+        goal_getter: "Achieve all monthly goals."
       };
       return descriptions[key] || "Achievement description not available.";
     }
