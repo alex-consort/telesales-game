@@ -215,8 +215,6 @@
         userPointsRef.on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
-          
-          checkAchievements(userId, currentPoints);
         });
 
         fetchProducts();
@@ -236,7 +234,11 @@
         .then((snapshot) => {
           snapshot.forEach((childSnapshot) => {
             const productData = childSnapshot.val();
-            const productCard = createProductCard(productData.name, productData.description, productData.points);
+            const productCard = createProductCard(
+              productData.name || "Unnamed Product",
+              productData.description || "No Description Available",
+              productData.points || 0
+            );
             productList.appendChild(productCard);
           });
         })
@@ -254,7 +256,11 @@
         .then((snapshot) => {
           snapshot.forEach((childSnapshot) => {
             const productData = childSnapshot.val();
-            const productCard = createProductCard(productData.name, productData.description, productData.points);
+            const productCard = createProductCard(
+              productData.name || "Unnamed Product",
+              productData.description || "No Description Available",
+              productData.points || 0
+            );
             shortDatedList.appendChild(productCard);
           });
         })
@@ -272,7 +278,11 @@
         .then((snapshot) => {
           snapshot.forEach((childSnapshot) => {
             const objectiveData = childSnapshot.val();
-            const objectiveCard = createProductCard(objectiveData.name, objectiveData.description, objectiveData.points);
+            const objectiveCard = createProductCard(
+              objectiveData.name || "Unnamed Objective",
+              objectiveData.description || "No Description Available",
+              objectiveData.points || 0
+            );
             objectiveList.appendChild(objectiveCard);
           });
         })
@@ -308,40 +318,6 @@
       card.appendChild(button);
 
       return card;
-    }
-
-    function earnPoints(points, productName, updateField) {
-      const user = auth.currentUser;
-      if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        const userFieldRef = db.ref("users/" + user.uid + "/" + updateField);
-
-        userPointsRef.transaction((currentPoints) => {
-          return (currentPoints || 0) + points;
-        }).then(() => {
-          userFieldRef.transaction((currentValue) => (currentValue || 0) + 1);
-          checkAchievements(user.uid, currentPoints);
-        });
-      }
-    }
-
-    function checkAchievements(userId, points) {
-      const achievementsRef = db.ref("achievements/" + userId);
-
-      const milestones = [
-        { key: "points_100", threshold: 100 },
-        { key: "points_500", threshold: 500 },
-        { key: "points_1000", threshold: 1000 },
-        { key: "high_roller", threshold: 10000 }
-      ];
-
-      milestones.forEach(milestone => {
-        achievementsRef.child(milestone.key).get().then((snapshot) => {
-          if (!snapshot.exists() && points >= milestone.threshold) {
-            achievementsRef.update({ [milestone.key]: true });
-          }
-        });
-      });
     }
   </script>
 </body>
