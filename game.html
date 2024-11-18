@@ -216,7 +216,6 @@
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
           
-          // Check for points milestones on each update
           checkAchievements(userId, currentPoints);
         });
 
@@ -229,15 +228,86 @@
     });
 
     function fetchProducts() {
-      // Similar implementation for fetching products
+      const productList = document.getElementById("productList");
+      productList.innerHTML = "";
+
+      const productsRef = db.ref("products");
+      productsRef.once("value")
+        .then((snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            const productData = childSnapshot.val();
+            const productCard = createProductCard(productData.name, productData.description, productData.points);
+            productList.appendChild(productCard);
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching products:", error);
+        });
     }
 
     function fetchShortDatedProducts() {
-      // Similar implementation for fetching short-dated products
+      const shortDatedList = document.getElementById("shortDatedList");
+      shortDatedList.innerHTML = "";
+
+      const shortDatedRef = db.ref("shortDatedProducts");
+      shortDatedRef.once("value")
+        .then((snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            const productData = childSnapshot.val();
+            const productCard = createProductCard(productData.name, productData.description, productData.points);
+            shortDatedList.appendChild(productCard);
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching short-dated products:", error);
+        });
     }
 
     function fetchObjectives() {
-      // Similar implementation for fetching objectives
+      const objectiveList = document.getElementById("objectiveList");
+      objectiveList.innerHTML = "";
+
+      const objectivesRef = db.ref("objectives");
+      objectivesRef.once("value")
+        .then((snapshot) => {
+          snapshot.forEach((childSnapshot) => {
+            const objectiveData = childSnapshot.val();
+            const objectiveCard = createProductCard(objectiveData.name, objectiveData.description, objectiveData.points);
+            objectiveList.appendChild(objectiveCard);
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching objectives:", error);
+        });
+    }
+
+    function createProductCard(name, description, points) {
+      const card = document.createElement("div");
+      card.className = "item-card";
+
+      const nameEl = document.createElement("div");
+      nameEl.className = "item-name";
+      nameEl.innerText = name;
+
+      const descriptionEl = document.createElement("div");
+      descriptionEl.className = "item-details";
+      descriptionEl.innerText = description;
+
+      const pointsEl = document.createElement("div");
+      pointsEl.className = "item-details";
+      pointsEl.innerText = `Points: ${points}`;
+
+      const button = document.createElement("button");
+      button.className = "item-button";
+      button.innerText = "Earn Points";
+      button.onclick = () => earnPoints(points, name, "productsEarned");
+
+      card.appendChild(nameEl);
+      card.appendChild(descriptionEl);
+      card.appendChild(pointsEl);
+      card.appendChild(button);
+
+      return card;
     }
 
     function earnPoints(points, productName, updateField) {
