@@ -346,5 +346,27 @@
       achievementRef.set(true).then(() => {
         console.log("Achievement unlocked:", achievementId);
       });
+    }
 
+    function checkAchievements(userId) {
+      db.ref("users/" + userId).once("value").then((snapshot) => {
+        const userData = snapshot.val();
+        const salesCount = userData.itemsSold || 0;
+        const points = userData.points || 0;
+        const objectivesCompleted = userData.objectivesCompleted || 0;
+
+        // Check various achievements
+        if (salesCount >= 10) updateAchievement(userId, "sales_10");
+        if (salesCount >= 50) updateAchievement(userId, "sales_50");
+        if (salesCount >= 100) updateAchievement(userId, "sales_100");
+        if (salesCount >= 200) updateAchievement(userId, "seasoned_seller");
+
+        if (points >= 100) updateAchievement(userId, "points_100");
+        if (points >= 500) updateAchievement(userId, "points_500");
+        if (points >= 1000) updateAchievement(userId, "points_1000");
+        if (points >= 5000) updateAchievement(userId, "points_5000");
+        if (points >= 10000) updateAchievement(userId, "high_roller");
+        if (objectivesCompleted >= 10) updateAchievement(userId, "objective_master");
+      });
+    }
   </script>
