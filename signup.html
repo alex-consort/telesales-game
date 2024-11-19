@@ -96,13 +96,12 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCXa3IZpSwI_JEJoXpg74LdhY85es-xVds",
       authDomain: "telesalesgame-a09f2.firebaseapp.com",
       databaseURL: "https://telesalesgame-a09f2-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "telesalesgame-a09f2",
-      storageBucket: "telesalesgame-a09f2.appspot.com",
+      storageBucket: "telesalesgame-a09f2.firebasestorage.app",
       messagingSenderId: "1097332097301",
       appId: "1:1097332097301:web:51b0151499e33f7851291c",
       measurementId: "G-7LNG5176PW"
@@ -131,28 +130,20 @@
         .then((userCredential) => {
           const user = userCredential.user;
           alert("Sign up successful!");
-          console.log("User created with UID:", user.uid);  // Log the user ID
 
-          // Prepare user data to save in Firebase
-          const userData = {
+          // Save additional profile information in the database
+          db.ref("users/" + user.uid).set({
             firstName: firstName,
             lastName: lastName,
             depot: depot,
             points: 0,
             level: 1,
             badges: {}
-          };
-
-          // Save the user data immediately after sign-up
-          db.ref("users/" + user.uid).set(userData)
-            .then(() => {
-              console.log("User data saved successfully in Firebase:", userData);
-              window.location.href = "profile.html";  // Redirect to profile after successful sign-up
-            })
-            .catch((error) => {
-              console.error("Error saving user data:", error);
-              alert("Failed to save user data.");
-            });
+            itemsSold: 0,
+            objectivesCompleted: 0,
+            redemptions: 0
+          });
+          window.location.href = "profile.html";  // Redirect to profile after successful sign-up
         })
         .catch(error => {
           console.error("Sign Up Error:", error.message);
