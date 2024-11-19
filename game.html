@@ -247,50 +247,6 @@
         });
     }
 
-    function fetchShortDatedProducts() {
-      const shortDatedList = document.getElementById("shortDatedList");
-      shortDatedList.innerHTML = "";
-
-      const shortDatedRef = db.ref("shortDatedProducts");
-      shortDatedRef.once("value")
-        .then((snapshot) => {
-          snapshot.forEach((childSnapshot) => {
-            const productData = childSnapshot.val();
-            const productCard = createProductCard(
-              productData.name || "Unnamed Product",
-              productData.description || "No Description Available",
-              productData.points || 0
-            );
-            shortDatedList.appendChild(productCard);
-          });
-        })
-        .catch((error) => {
-          console.error("Error fetching short-dated products:", error);
-        });
-    }
-
-    function fetchObjectives() {
-      const objectiveList = document.getElementById("objectiveList");
-      objectiveList.innerHTML = "";
-
-      const objectivesRef = db.ref("objectives");
-      objectivesRef.once("value")
-        .then((snapshot) => {
-          snapshot.forEach((childSnapshot) => {
-            const objectiveData = childSnapshot.val();
-            const objectiveCard = createProductCard(
-              objectiveData.name || "Unnamed Objective",
-              objectiveData.description || "No Description Available",
-              objectiveData.points || 0
-            );
-            objectiveList.appendChild(objectiveCard);
-          });
-        })
-        .catch((error) => {
-          console.error("Error fetching objectives:", error);
-        });
-    }
-
     function createProductCard(name, description, points) {
       const card = document.createElement("div");
       card.className = "item-card";
@@ -310,7 +266,7 @@
       const button = document.createElement("button");
       button.className = "item-button";
       button.innerText = "Earn Points";
-      button.onclick = () => earnPoints(points, name, "productsEarned");
+      button.onclick = () => earnPoints(points, name);
 
       card.appendChild(nameEl);
       card.appendChild(descriptionEl);
@@ -318,6 +274,21 @@
       card.appendChild(button);
 
       return card;
+    }
+
+    function earnPoints(points, productName) {
+      const user = auth.currentUser;
+      if (user) {
+        const userPointsRef = db.ref(`users/${user.uid}/points`);
+
+        userPointsRef.transaction((currentPoints) => {
+          return (currentPoints || 0) + points;
+        }).then(() => {
+          console.log(`Added ${points} points for ${productName}`);
+        }).catch((error) => {
+          console.error("Error updating points:", error);
+        });
+      }
     }
   </script>
 </body>
