@@ -215,9 +215,6 @@
         userPointsRef.on("value", (snapshot) => {
           currentPoints = snapshot.val() || 0;
           document.getElementById("points").innerText = currentPoints;
-          
-          // Check for points milestones on each update
-          checkAchievements(userId, currentPoints);
         });
 
         fetchProducts();
@@ -235,6 +232,7 @@
         const products = snapshot.val();
         const productList = document.getElementById("productList");
         productList.innerHTML = "";
+
         for (const key in products) {
           const product = products[key];
           const productCard = document.createElement("div");
@@ -247,7 +245,6 @@
           productList.appendChild(productCard);
         }
       });
-      // Similar implementation for fetching products
     }
 
     function fetchShortDatedProducts() {
@@ -256,6 +253,7 @@
         const shortDatedProducts = snapshot.val();
         const shortDatedList = document.getElementById("shortDatedList");
         shortDatedList.innerHTML = "";
+
         for (const key in shortDatedProducts) {
           const product = shortDatedProducts[key];
           const shortDatedCard = document.createElement("div");
@@ -268,7 +266,6 @@
           shortDatedList.appendChild(shortDatedCard);
         }
       });
-      // Similar implementation for fetching short-dated products
     }
 
     function fetchObjectives() {
@@ -277,6 +274,7 @@
         const objectives = snapshot.val();
         const objectiveList = document.getElementById("objectiveList");
         objectiveList.innerHTML = "";
+
         for (const key in objectives) {
           const objective = objectives[key];
           const objectiveCard = document.createElement("div");
@@ -289,7 +287,6 @@
           objectiveList.appendChild(objectiveCard);
         }
       });
-      // Similar implementation for fetching objectives
     }
 
     function earnPoints(points, productName, updateField) {
@@ -299,10 +296,12 @@
         const userFieldRef = db.ref("users/" + user.uid + "/" + updateField);
         const masterHistoryRef = db.ref("masterHistory");
         const userRef = db.ref("users/" + user.uid);
+
         userRef.once("value").then((snapshot) => {
           const userData = snapshot.val();
           const firstName = userData.firstName || "undefined";
           const lastName = userData.lastName || "undefined";
+
           userPointsRef.transaction((currentPoints) => {
             return (currentPoints || 0) + points;
           }).then(() => {
@@ -317,14 +316,10 @@
               points: points,
               purchaseDate: new Date().toISOString()
             });
+
             // Check and award achievements
             checkAchievements(user.uid);
           });
-        userPointsRef.transaction((currentPoints) => {
-          return (currentPoints || 0) + points;
-        }).then(() => {
-          userFieldRef.transaction((currentValue) => (currentValue || 0) + 1);
-          checkAchievements(user.uid, currentPoints);
         });
       } else {
         alert("You need to be logged in to earn points.");
@@ -332,7 +327,6 @@
     }
 
     function displayAchievements(userId) {
-    function checkAchievements(userId, points) {
       const achievementsRef = db.ref("achievements/" + userId);
       achievementsRef.on("value", (snapshot) => {
         const achievementsDisplay = document.createElement("div");
@@ -341,41 +335,36 @@
           const achievementId = childSnapshot.key;
           if (childSnapshot.val()) {
             achievementsDisplay.innerHTML += `<p>✔️ ${achievementId.replace(/_/g, " ")}</p>`;
-      const milestones = [
-        { key: "points_100", threshold: 100 },
-        { key: "points_500", threshold: 500 },
-        { key: "points_1000", threshold: 1000 },
-        { key: "high_roller", threshold: 10000 }
-      ];
-      milestones.forEach(milestone => {
-        achievementsRef.child(milestone.key).get().then((snapshot) => {
-          if (!snapshot.exists() && points >= milestone.threshold) {
-            achievementsRef.update({ [milestone.key]: true });
           }
         });
         document.querySelector(".game-container").appendChild(achievementsDisplay);
       });
     }
+
     function updateAchievement(userId, achievementId) {
       const achievementRef = db.ref("achievements/" + userId + "/" + achievementId);
       achievementRef.set(true).then(() => {
         console.log("Achievement unlocked:", achievementId);
       });
     }
+
     function checkAchievements(userId) {
       db.ref("users/" + userId).once("value").then((snapshot) => {
         const userData = snapshot.val();
         const salesCount = userData.itemsSold || 0;
         const points = userData.points || 0;
         const objectivesCompleted = userData.objectivesCompleted || 0;
+
         // Check various achievements
         if (salesCount >= 10) updateAchievement(userId, "sales_10");
         if (salesCount >= 50) updateAchievement(userId, "sales_50");
         if (salesCount >= 100) updateAchievement(userId, "sales_100");
         if (salesCount >= 200) updateAchievement(userId, "seasoned_seller");
+
         if (points >= 100) updateAchievement(userId, "points_100");
         if (points >= 500) updateAchievement(userId, "points_500");
         if (points >= 1000) updateAchievement(userId, "points_1000");
+        if (points >= 5000) updateAchievement(userId, "points_5000");
         if (points >= 10000) updateAchievement(userId, "high_roller");
         if (objectivesCompleted >= 10) updateAchievement(userId, "objective_master");
       });
