@@ -220,7 +220,6 @@
         fetchProducts();
         fetchShortDatedProducts();
         fetchObjectives();
-        displayAchievements(userId);
       } else {
         window.location.href = "login.html";
       }
@@ -292,81 +291,39 @@
     function earnPoints(points, productName, updateField) {
       const user = auth.currentUser;
       if (user) {
-        const userPointsRef = db.ref("users/" + user.uid + "/points");
-        const userFieldRef = db.ref("users/" + user.uid + "/" + updateField);
+        const userId = user.uid;
+        const userPointsRef = db.ref(`users/${userId}/points`);
+        const userFieldRef = db.ref(`users/${userId}/${updateField}`);
         const masterHistoryRef = db.ref("masterHistory");
-        const userRef = db.ref("users/" + user.uid);
+        const userRef = db.ref(`users/${userId}`);
 
         userRef.once("value").then((snapshot) => {
           const userData = snapshot.val();
-          const firstName = userData.firstName || "undefined";
-          const lastName = userData.lastName || "undefined";
+          const firstName = userData?.firstName || "Unknown";
+          const lastName = userData?.lastName || "Unknown";
 
-          userPointsRef.transaction((currentPoints) => {
-            return (currentPoints || 0) + points;
-          }).then(() => {
-            userFieldRef.transaction((currentValue) => {
-              return (currentValue || 0) + 1;
-            });
-            masterHistoryRef.push({
-              actionType: 'Earn Points',
-              productName: productName,
-              firstName: firstName,
-              lastName: lastName,
-              points: points,
-              purchaseDate: new Date().toISOString()
-            });
+          // Update points and the specified field
+          userPointsRef.transaction((currentPoints) => (currentPoints || 0) + points);
+          userFieldRef.transaction((currentValue) => (currentValue || 0) + 1);
 
-            // Check and award achievements
-            checkAchievements(user.uid);
+          // Log action in masterHistory
+          masterHistoryRef.push({
+            actionType: "Earn Points",
+            productName: productName,
+            firstName: firstName,
+            lastName: lastName,
+            points: points,
+            userId: userId,
+            updateField: updateField,
+            timestamp: new Date().toISOString(),
           });
+
+          console.log(`History entry logged for ${userId}`);
         });
       } else {
         alert("You need to be logged in to earn points.");
       }
     }
-
-    function displayAchievements(userId) {
-      const achievementsRef = db.ref("achievements/" + userId);
-      achievementsRef.on("value", (snapshot) => {
-        const achievementsDisplay = document.createElement("div");
-        achievementsDisplay.innerHTML = "<h3>Your Achievements:</h3>";
-        snapshot.forEach((childSnapshot) => {
-          const achievementId = childSnapshot.key;
-          if (childSnapshot.val()) {
-            achievementsDisplay.innerHTML += `<p>✔️ ${achievementId.replace(/_/g, " ")}</p>`;
-          }
-        });
-        document.querySelector(".game-container").appendChild(achievementsDisplay);
-      });
-    }
-
-    function updateAchievement(userId, achievementId) {
-      const achievementRef = db.ref("achievements/" + userId + "/" + achievementId);
-      achievementRef.set(true).then(() => {
-        console.log("Achievement unlocked:", achievementId);
-      });
-    }
-
-    function checkAchievements(userId) {
-      db.ref("users/" + userId).once("value").then((snapshot) => {
-        const userData = snapshot.val();
-        const salesCount = userData.itemsSold || 0;
-        const points = userData.points || 0;
-        const objectivesCompleted = userData.objectivesCompleted || 0;
-
-        // Check various achievements
-        if (salesCount >= 10) updateAchievement(userId, "sales_10");
-        if (salesCount >= 50) updateAchievement(userId, "sales_50");
-        if (salesCount >= 100) updateAchievement(userId, "sales_100");
-        if (salesCount >= 200) updateAchievement(userId, "seasoned_seller");
-
-        if (points >= 100) updateAchievement(userId, "points_100");
-        if (points >= 500) updateAchievement(userId, "points_500");
-        if (points >= 1000) updateAchievement(userId, "points_1000");
-        if (points >= 5000) updateAchievement(userId, "points_5000");
-        if (points >= 10000) updateAchievement(userId, "high_roller");
-        if (objectivesCompleted >= 10) updateAchievement(userId, "objective_master");
-      });
-    }
   </script>
+</body>
+</html>
